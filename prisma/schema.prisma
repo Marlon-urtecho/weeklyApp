@@ -1,0 +1,194 @@
+// GENERATOR: Genera el cliente de Prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+// DATASOURCE: Conexión a PostgreSQL
+datasource db {
+  provider = "postgresql"
+  // Connection URL removed for Prisma 7+.
+  // Prisma 7 reads connection URLs from `prisma.config.ts` instead.
+}
+
+// MODEL USUARIOS - Traducción directa de tu tabla
+model usuarios {
+  id_usuario Int            @id @default(autoincrement()) @map("id_usuario")
+  nombre     String         @map("nombre")
+  username   String         @unique @map("username")
+  password   String         @map("password")
+  activo     Boolean        @default(true) @map("activo")
+  created_at DateTime       @default(now()) @map("created_at")
+  updated_at DateTime       @updatedAt @map("updated_at")
+  
+  // Relaciones
+  usuario_roles usuario_roles[]
+  vendedores    vendedores?
+  pagos         pagos[]
+  
+  // @map: Mapea el nombre del campo en DB
+  @@map("usuarios")
+}
+
+// MODEL ROLES
+model roles {
+  id_rol     Int            @id @default(autoincrement()) @map("id_rol")
+  nombre_rol String         @map("nombre_rol")
+  
+  usuario_roles usuario_roles[]
+  
+  @@map("roles")
+}
+
+// MODEL USUARIO_ROLES (tabla intermedia)
+model usuario_roles {
+  id_usuario Int     @map("id_usuario")
+  id_rol     Int     @map("id_rol")
+  
+  usuarios usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  roles    roles    @relation(fields: [id_rol], references: [id_rol])
+  
+  @@id([id_usuario, id_rol])
+  @@unique([id_usuario, id_rol])
+  @@map("usuario_roles")
+}
+
+// MODEL VENDEDORES
+model vendedores {
+  id_vendedor Int            @id @default(autoincrement()) @map("id_vendedor")
+  id_usuario  Int            @unique @map("id_usuario")
+  nombre      String         @map("nombre")
+  telefono    String         @map("telefono")
+  activo      Boolean        @default(true) @map("activo")
+  created_at  DateTime       @default(now()) @map("created_at")
+  updated_at  DateTime       @updatedAt @map("updated_at")
+  
+  usuarios    usuarios       @relation(fields: [id_usuario], references: [id_usuario])
+  rutas       rutas[]
+  inventario_vendedor inventario_vendedor[]
+  
+  @@map("vendedores")
+}
+
+// MODEL RUTAS
+model rutas {
+  id_ruta     Int       @id @default(autoincrement()) @map("id_ruta")
+  id_vendedor Int       @map("id_vendedor")
+  nombre_ruta String    @map("nombre_ruta")
+  sitio       String    @map("sitio")
+  
+  vendedores  vendedores @relation(fields: [id_vendedor], references: [id_vendedor])
+  clientes    clientes[]
+  
+  @@map("rutas")
+}
+
+// MODEL CLIENTES
+model clientes {
+  id_cliente     Int       @id @default(autoincrement()) @map("id_cliente")
+  codigo_cliente String    @unique @map("codigo_cliente")
+  nombre         String    @map("nombre")
+  direccion      String    @map("direccion")
+  telefono       String    @map("telefono")
+  id_ruta        Int       @map("id_ruta")
+  
+  rutas          rutas     @relation(fields: [id_ruta], references: [id_ruta])
+  creditos       creditos[]
+  
+  @@map("clientes")
+}
+
+// MODEL PRODUCTOS
+model productos {
+  id_producto      Int                     @id @default(autoincrement()) @map("id_producto")
+  nombre           String                  @map("nombre")
+  categoria        String                  @map("categoria")
+  precio_contado   Decimal                 @map("precio_contado")
+  precio_credito   Decimal                 @map("precio_credito")
+  created_at       DateTime                @default(now()) @map("created_at")
+  updated_at       DateTime                @updatedAt @map("updated_at")
+  
+  inventario_bodega      inventario_bodega?
+  inventario_vendedor    inventario_vendedor[]
+  movimientos_inventario movimientos_inventario[]
+  creditos               creditos[]
+  
+  @@map("productos")
+}
+
+// MODEL INVENTARIO_BODEGA
+model inventario_bodega {
+  id_inventario    Int       @id @default(autoincrement()) @map("id_inventario")
+  id_producto      Int       @unique @map("id_producto")
+  stock_total      Int       @map("stock_total")
+  stock_disponible Int       @map("stock_disponible")
+  
+  productos        productos @relation(fields: [id_producto], references: [id_producto])
+  
+  @@map("inventario_bodega")
+}
+
+// MODEL INVENTARIO_VENDEDOR
+model inventario_vendedor {
+  id          Int         @id @default(autoincrement()) @map("id")
+  id_vendedor Int         @map("id_vendedor")
+  id_producto Int         @map("id_producto")
+  cantidad    Int         @map("cantidad")
+  
+  vendedores  vendedores  @relation(fields: [id_vendedor], references: [id_vendedor])
+  productos   productos   @relation(fields: [id_producto], references: [id_producto])
+  
+  @@unique([id_vendedor, id_producto])
+  @@map("inventario_vendedor")
+}
+
+// MODEL MOVIMIENTOS_INVENTARIO
+model movimientos_inventario {
+  id_movimiento Int       @id @default(autoincrement()) @map("id_movimiento")
+  id_producto   Int       @map("id_producto")
+  tipo          String    @map("tipo")
+  cantidad      Int       @map("cantidad")
+  origen        String    @map("origen")
+  destino       String    @map("destino")
+  referencia    String?   @map("referencia")
+  fecha         DateTime  @default(now()) @map("fecha")
+  
+  productos     productos @relation(fields: [id_producto], references: [id_producto])
+  
+  @@map("movimientos_inventario")
+}
+
+// MODEL CREDITOS
+model creditos {
+  id_credito       Int        @id @default(autoincrement()) @map("id_credito")
+  id_cliente       Int        @map("id_cliente")
+  id_producto      Int        @map("id_producto")
+  cantidad         Int        @map("cantidad")
+  monto_total      Decimal    @map("monto_total")
+  cuota            Decimal    @map("cuota")
+  frecuencia_pago  String     @map("frecuencia_pago")
+  saldo_pendiente  Decimal    @map("saldo_pendiente")
+  estado           String     @default("ACTIVO") @map("estado")
+  fecha_inicio     DateTime   @map("fecha_inicio")
+  created_at       DateTime   @default(now()) @map("created_at")
+  updated_at       DateTime   @updatedAt @map("updated_at")
+  
+  clientes         clientes   @relation(fields: [id_cliente], references: [id_cliente])
+  productos        productos  @relation(fields: [id_producto], references: [id_producto])
+  pagos            pagos[]
+  
+  @@map("creditos")
+}
+
+// MODEL PAGOS
+model pagos {
+  id_pago        Int       @id @default(autoincrement()) @map("id_pago")
+  id_credito     Int       @map("id_credito")
+  monto_pagado   Decimal   @map("monto_pagado")
+  fecha_pago     DateTime  @default(now()) @map("fecha_pago")
+  registrado_por Int       @map("registrado_por")
+  
+  creditos       creditos  @relation(fields: [id_credito], references: [id_credito])
+  usuarios       usuarios  @relation(fields: [registrado_por], references: [id_usuario])
+  
+  @@map("pagos")
+}
