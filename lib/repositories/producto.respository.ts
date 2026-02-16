@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { Producto } from '../models'
+import { productos as Producto } from '@prisma/client'
 
 export class ProductoRepository extends BaseRepository<Producto> {
   constructor() {
@@ -8,53 +8,58 @@ export class ProductoRepository extends BaseRepository<Producto> {
     this.model = prisma.productos
   }
 
-  async findByCategoria(categoria: string): Promise<Producto[]> {
+  async findByCategoria(id_categoria: number): Promise<Producto[]> {
     return this.model.findMany({
-      where: { categoria }
+      where: { id_categoria },
+      include: {
+        categorias: true
+      }
     })
   }
 
-  async updateStock(id_producto: number, cantidad: number, tipo: 'ENTRADA' | 'SALIDA') {
-    return prisma.$transaction(async (tx: { inventario_bodega: { findUnique: (arg0: { where: { id_producto: number } }) => any; update: (arg0: { where: { id_producto: number }; data: { stock_total: any; stock_disponible: any } }) => any }; movimientos_inventario: { create: (arg0: { data: { id_producto: number; tipo: "ENTRADA" | "SALIDA"; cantidad: number; origen: string; destino: string } }) => any } }) => {
-      // 1. Actualizar inventario bodega
-      const inventario = await tx.inventario_bodega.findUnique({
-        where: { id_producto }
-      })
-
-      if (!inventario) {
-        throw new Error('Producto sin inventario')
+  async findByIdWithRelations(id: number): Promise<Producto | null> {
+    return this.model.findUnique({
+      where: { id_producto: id },
+      include: {
+        categorias: true,
+        inventario_bodega: true,
+        inventario_vendedor: {
+          include: {
+            vendedores: true
+          }
+        },
+        movimientos_inventario: true,
+        credito_detalle: true
       }
+    })
+  }
 
-      // 2. Calcular nuevo stock
-      const nuevoStock = tipo === 'ENTRADA' 
-        ? inventario.stock_disponible + cantidad
-        : inventario.stock_disponible - cantidad
-
-      if (nuevoStock < 0) {
-        throw new Error('Stock insuficiente')
+  async getInventarioCompleto(): Promise<Producto[]> {
+    return this.model.findMany({
+      include: {
+        categorias: true,
+        inventario_bodega: true,
+        inventario_vendedor: {
+          include: {
+            vendedores: true
+          }
+        }
       }
+    })
+  }
 
-      // 3. Actualizar
-      await tx.inventario_bodega.update({
-        where: { id_producto },
-        data: {
-          stock_total: tipo === 'ENTRADA' 
-            ? inventario.stock_total + cantidad
-            : inventario.stock_total,
-          stock_disponible: nuevoStock
+  async buscarPorNombre(termino: string): Promise<Producto[]> {
+    return this.model.findMany({
+      where: {
+        nombre: {
+          contains: termino,
+          mode: 'insensitive'
         }
-      })
-
-      // 4. Registrar movimiento
-      await tx.movimientos_inventario.create({
-        data: {
-          id_producto,
-          tipo,
-          cantidad,
-          origen: 'BODEGA',
-          destino: tipo === 'SALIDA' ? 'VENDEDOR' : 'PROVEEDOR'
-        }
-      })
+      },
+      include: {
+        categorias: true,
+        inventario_bodega: true
+      }
     })
   }
 }

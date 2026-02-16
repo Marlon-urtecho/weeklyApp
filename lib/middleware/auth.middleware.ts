@@ -16,7 +16,6 @@ export async function authMiddleware(req: NextRequest) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!)
     return decoded
-    
   } catch (error) {
     return NextResponse.json(
       { error: 'Token inválido o expirado' },
@@ -24,14 +23,3 @@ export async function authMiddleware(req: NextRequest) {
     )
   }
 }
-
-// USO en API routes protegidas:
-/*
-export async function GET(req: NextRequest) {
-  const auth = await authMiddleware(req)
-  if (auth instanceof NextResponse) return auth
-  
-  // Si llega aquí, está autenticado
-  // auth contiene { id, username, roles }
-}
-*/

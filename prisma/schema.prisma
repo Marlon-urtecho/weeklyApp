@@ -21,11 +21,12 @@ model usuarios {
   updated_at DateTime       @updatedAt @map("updated_at")
   
   // Relaciones
-  usuario_roles usuario_roles[]
-  vendedores    vendedores?
-  pagos         pagos[]
+  usuario_roles           usuario_roles[]
+  vendedores              vendedores?
+  pagos                   pagos[]
+  movimientos_inventario  movimientos_inventario[]
+  creditos_creados        creditos[]      @relation("creditos_creados")
   
-  // @map: Mapea el nombre del campo en DB
   @@map("usuarios")
 }
 
@@ -62,34 +63,84 @@ model vendedores {
   created_at  DateTime       @default(now()) @map("created_at")
   updated_at  DateTime       @updatedAt @map("updated_at")
   
-  usuarios    usuarios       @relation(fields: [id_usuario], references: [id_usuario])
-  rutas       rutas[]
+  usuarios            usuarios              @relation(fields: [id_usuario], references: [id_usuario])
+  ruta_vendedor       ruta_vendedor[]
   inventario_vendedor inventario_vendedor[]
+  creditos            creditos[]
   
   @@map("vendedores")
 }
 
-// MODEL RUTAS
-model rutas {
-  id_ruta     Int       @id @default(autoincrement()) @map("id_ruta")
-  id_vendedor Int       @map("id_vendedor")
-  nombre_ruta String    @map("nombre_ruta")
-  sitio       String    @map("sitio")
+// MODEL CATEGORIAS (NUEVO)
+model categorias {
+  id_categoria       Int         @id @default(autoincrement()) @map("id_categoria")
+  nombre_categoria   String      @unique @map("nombre_categoria")
+  descripcion        String?     @map("descripcion")
+  activo             Boolean     @default(true) @map("activo")
   
-  vendedores  vendedores @relation(fields: [id_vendedor], references: [id_vendedor])
-  clientes    clientes[]
+  productos          productos[]
+  
+  @@map("categorias")
+}
+
+// MODEL PRODUCTOS (ACTUALIZADO)
+model productos {
+  id_producto      Int                     @id @default(autoincrement()) @map("id_producto")
+  nombre           String                  @map("nombre")
+  id_categoria     Int                     @map("id_categoria")
+  precio_contado   Decimal                 @map("precio_contado")
+  precio_credito   Decimal                 @map("precio_credito")
+  created_at       DateTime                @default(now()) @map("created_at")
+  updated_at       DateTime                @updatedAt @map("updated_at")
+  
+  categorias              categorias                @relation(fields: [id_categoria], references: [id_categoria])
+  inventario_bodega       inventario_bodega?
+  inventario_vendedor     inventario_vendedor[]
+  movimientos_inventario  movimientos_inventario[]
+  credito_detalle         credito_detalle[]
+  
+  @@map("productos")
+}
+
+// MODEL RUTAS (ACTUALIZADO)
+model rutas {
+  id_ruta       Int       @id @default(autoincrement()) @map("id_ruta")
+  codigo_ruta   String    @unique @map("codigo_ruta")
+  nombre_ruta   String    @map("nombre_ruta")
+  zona          String?   @map("zona")
+  activo        Boolean   @default(true) @map("activo")
+  
+  ruta_vendedor ruta_vendedor[]
+  clientes      clientes[]
   
   @@map("rutas")
 }
 
-// MODEL CLIENTES
+// MODEL RUTA_VENDEDOR (NUEVA TABLA INTERMEDIA)
+model ruta_vendedor {
+  id_ruta_vendedor Int      @id @default(autoincrement()) @map("id_ruta_vendedor")
+  id_ruta          Int      @map("id_ruta")
+  id_vendedor      Int      @map("id_vendedor")
+  fecha_asignacion DateTime @default(now()) @map("fecha_asignacion")
+  activo           Boolean  @default(true) @map("activo")
+  
+  rutas     rutas     @relation(fields: [id_ruta], references: [id_ruta])
+  vendedores vendedores @relation(fields: [id_vendedor], references: [id_vendedor])
+  
+  @@unique([id_ruta, id_vendedor])
+  @@map("ruta_vendedor")
+}
+
+// MODEL CLIENTES (ACTUALIZADO)
 model clientes {
   id_cliente     Int       @id @default(autoincrement()) @map("id_cliente")
   codigo_cliente String    @unique @map("codigo_cliente")
   nombre         String    @map("nombre")
-  direccion      String    @map("direccion")
-  telefono       String    @map("telefono")
+  direccion      String?   @map("direccion")
+  telefono       String?   @map("telefono")
+  email          String?   @map("email")
   id_ruta        Int       @map("id_ruta")
+  activo         Boolean   @default(true) @map("activo")
   
   rutas          rutas     @relation(fields: [id_ruta], references: [id_ruta])
   creditos       creditos[]
@@ -97,30 +148,13 @@ model clientes {
   @@map("clientes")
 }
 
-// MODEL PRODUCTOS
-model productos {
-  id_producto      Int                     @id @default(autoincrement()) @map("id_producto")
-  nombre           String                  @map("nombre")
-  categoria        String                  @map("categoria")
-  precio_contado   Decimal                 @map("precio_contado")
-  precio_credito   Decimal                 @map("precio_credito")
-  created_at       DateTime                @default(now()) @map("created_at")
-  updated_at       DateTime                @updatedAt @map("updated_at")
-  
-  inventario_bodega      inventario_bodega?
-  inventario_vendedor    inventario_vendedor[]
-  movimientos_inventario movimientos_inventario[]
-  creditos               creditos[]
-  
-  @@map("productos")
-}
-
 // MODEL INVENTARIO_BODEGA
 model inventario_bodega {
   id_inventario    Int       @id @default(autoincrement()) @map("id_inventario")
   id_producto      Int       @unique @map("id_producto")
-  stock_total      Int       @map("stock_total")
-  stock_disponible Int       @map("stock_disponible")
+  stock_total      Int       @default(0) @map("stock_total")
+  stock_disponible Int       @default(0) @map("stock_disponible")
+  updated_at       DateTime  @updatedAt @map("updated_at")
   
   productos        productos @relation(fields: [id_producto], references: [id_producto])
   
@@ -132,7 +166,9 @@ model inventario_vendedor {
   id          Int         @id @default(autoincrement()) @map("id")
   id_vendedor Int         @map("id_vendedor")
   id_producto Int         @map("id_producto")
-  cantidad    Int         @map("cantidad")
+  cantidad    Int         @default(0) @map("cantidad")
+  fecha_asignacion DateTime @default(now()) @map("fecha_asignacion")
+  updated_at  DateTime    @updatedAt @map("updated_at")
   
   vendedores  vendedores  @relation(fields: [id_vendedor], references: [id_vendedor])
   productos   productos   @relation(fields: [id_producto], references: [id_producto])
@@ -141,51 +177,89 @@ model inventario_vendedor {
   @@map("inventario_vendedor")
 }
 
-// MODEL MOVIMIENTOS_INVENTARIO
-model movimientos_inventario {
-  id_movimiento Int       @id @default(autoincrement()) @map("id_movimiento")
-  id_producto   Int       @map("id_producto")
-  tipo          String    @map("tipo")
-  cantidad      Int       @map("cantidad")
-  origen        String    @map("origen")
-  destino       String    @map("destino")
-  referencia    String?   @map("referencia")
-  fecha         DateTime  @default(now()) @map("fecha")
+// MODEL TIPO_MOVIMIENTO (NUEVO)
+model tipo_movimiento {
+  id_tipo_movimiento Int      @id @default(autoincrement()) @map("id_tipo_movimiento")
+  nombre_tipo        String   @unique @map("nombre_tipo")
+  factor             Int      @map("factor") // 1 para entrada, -1 para salida
+  descripcion        String?  @map("descripcion")
   
-  productos     productos @relation(fields: [id_producto], references: [id_producto])
+  movimientos_inventario movimientos_inventario[]
+  
+  @@map("tipo_movimiento")
+}
+
+// MODEL MOVIMIENTOS_INVENTARIO (ACTUALIZADO)
+model movimientos_inventario {
+  id_movimiento      Int      @id @default(autoincrement()) @map("id_movimiento")
+  id_producto        Int      @map("id_producto")
+  id_tipo_movimiento Int      @map("id_tipo_movimiento")
+  cantidad           Int      @map("cantidad")
+  origen             String   @map("origen")
+  destino            String   @map("destino")
+  referencia         String?  @map("referencia")
+  observacion        String?  @map("observacion")
+  fecha_movimiento   DateTime @default(now()) @map("fecha_movimiento")
+  id_usuario_registra Int     @map("id_usuario_registra")
+  
+  productos          productos          @relation(fields: [id_producto], references: [id_producto])
+  tipo_movimiento    tipo_movimiento    @relation(fields: [id_tipo_movimiento], references: [id_tipo_movimiento])
+  usuarios           usuarios           @relation(fields: [id_usuario_registra], references: [id_usuario])
   
   @@map("movimientos_inventario")
 }
 
-// MODEL CREDITOS
+// MODEL CREDITOS (ACTUALIZADO)
 model creditos {
   id_credito       Int        @id @default(autoincrement()) @map("id_credito")
   id_cliente       Int        @map("id_cliente")
-  id_producto      Int        @map("id_producto")
-  cantidad         Int        @map("cantidad")
+  id_vendedor      Int        @map("id_vendedor")
   monto_total      Decimal    @map("monto_total")
   cuota            Decimal    @map("cuota")
   frecuencia_pago  String     @map("frecuencia_pago")
+  numero_cuotas    Int        @map("numero_cuotas")
   saldo_pendiente  Decimal    @map("saldo_pendiente")
   estado           String     @default("ACTIVO") @map("estado")
   fecha_inicio     DateTime   @map("fecha_inicio")
+  fecha_vencimiento DateTime  @map("fecha_vencimiento")
   created_at       DateTime   @default(now()) @map("created_at")
   updated_at       DateTime   @updatedAt @map("updated_at")
+  id_usuario_crea  Int        @map("id_usuario_crea")
   
   clientes         clientes   @relation(fields: [id_cliente], references: [id_cliente])
-  productos        productos  @relation(fields: [id_producto], references: [id_producto])
+  vendedores       vendedores @relation(fields: [id_vendedor], references: [id_vendedor])
+  usuarios_crea    usuarios   @relation("creditos_creados", fields: [id_usuario_crea], references: [id_usuario])
+  credito_detalle  credito_detalle[]
   pagos            pagos[]
   
   @@map("creditos")
 }
 
-// MODEL PAGOS
+model credito_detalle {
+  id_detalle     Int      @id @default(autoincrement())
+  id_credito     Int
+  id_producto    Int
+  cantidad       Int
+  precio_unitario Decimal
+  subtotal       Decimal
+
+  creditos  creditos  @relation(fields: [id_credito], references: [id_credito])
+  productos productos @relation(fields: [id_producto], references: [id_producto])
+
+  // Clave única compuesta
+  @@unique([id_credito, id_producto])
+  @@map("credito_detalle")
+}
+
+// MODEL PAGOS (ACTUALIZADO)
 model pagos {
   id_pago        Int       @id @default(autoincrement()) @map("id_pago")
   id_credito     Int       @map("id_credito")
   monto_pagado   Decimal   @map("monto_pagado")
   fecha_pago     DateTime  @default(now()) @map("fecha_pago")
+  metodo_pago    String?   @map("metodo_pago")
   registrado_por Int       @map("registrado_por")
+  created_at     DateTime  @default(now()) @map("created_at")
   
   creditos       creditos  @relation(fields: [id_credito], references: [id_credito])
   usuarios       usuarios  @relation(fields: [registrado_por], references: [id_usuario])

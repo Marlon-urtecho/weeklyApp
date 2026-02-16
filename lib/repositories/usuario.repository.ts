@@ -4,6 +4,9 @@ import { Usuario } from '../models'
 import bcrypt from 'bcryptjs'
 
 export class UsuarioRepository extends BaseRepository<Usuario> {
+  findActivos(): any {
+      throw new Error('Method not implemented.')
+  }
   constructor() {
     super()
     this.model = prisma.usuarios

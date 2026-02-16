@@ -1,8 +1,10 @@
-import { UsuarioRepository } from '../repositories/Usuario.repository'
+import { UsuarioRepository } from '../repositories/usuario.repository'
 import { CreateUsuarioDTOType, UpdateUsuarioDTOType } from '../dto/usuario.dto'
 
 export class UsuarioService {
   private usuarioRepository: UsuarioRepository
+    quitarRol: any
+    asignarRol: any
 
   constructor() {
     this.usuarioRepository = new UsuarioRepository()

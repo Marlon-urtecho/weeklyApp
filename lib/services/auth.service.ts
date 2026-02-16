@@ -1,4 +1,4 @@
-import { UsuarioRepository } from '../repositories/Usuario.repository'
+import { UsuarioRepository } from '../repositories/usuario.repository'
 import { LoginDTOType, RegisterDTOType } from '../dto/auth.dto'
 import jwt from 'jsonwebtoken'
 import { AuthResponse, Usuario } from '../models'

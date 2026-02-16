@@ -1,19 +1,23 @@
-
+// ============================================
 // TIPOS BASE PARA TYPESCRIPT INTERFACES Y TIPOS DE DATOS
+// ============================================
 
 // USUARIOS
 export interface Usuario {
   id_usuario: number;
   nombre: string;
   username: string;
-  password?: string; 
+  password?: string;
   activo: boolean;
   created_at?: Date;
   updated_at?: Date;
-  
-  // Relaciones (opcionales, para cuando se incluyan)
+
+  // Relaciones 
   roles?: Rol[];
   vendedor?: Vendedor;
+  movimientos_registrados?: MovimientoInventario[];
+  creditos_creados?: Credito[];
+  pagos_registrados?: Pago[];
 }
 
 // ROLES
@@ -22,7 +26,7 @@ export interface Rol {
   nombre_rol: string;
 }
 
-// USUARIO_ROLES (tabla intermedia)
+// USUARIO_ROLES 
 export interface UsuarioRol {
   id_usuario: number;
   id_rol: number;
@@ -39,21 +43,62 @@ export interface Vendedor {
   activo: boolean;
   created_at?: Date;
   updated_at?: Date;
-  
+
   usuario?: Usuario;
-  rutas?: Ruta[];
+  rutas_asignadas?: RutaVendedor[];
   inventario?: InventarioVendedor[];
+  creditos_gestionados?: Credito[];
+}
+
+// CATEGORIAS
+export interface Categoria {
+  id_categoria: number;
+  nombre_categoria: string;
+  descripcion?: string;
+  activo: boolean;
+
+  productos?: Producto[];
+}
+
+// PRODUCTOS
+export interface Producto {
+  id_producto: number;
+  nombre: string;
+  id_categoria: number;
+  precio_contado: number;
+  precio_credito: number;
+  created_at?: Date;
+  updated_at?: Date;
+
+  categoria?: Categoria;
+  inventario_bodega?: InventarioBodega;
+  inventario_vendedores?: InventarioVendedor[];
+  creditos_detalle?: CreditoDetalle[];
+  movimientos?: MovimientoInventario[];
 }
 
 // RUTAS
 export interface Ruta {
   id_ruta: number;
-  id_vendedor: number;
+  codigo_ruta: string;
   nombre_ruta: string;
-  sitio: string;
-  
-  vendedor?: Vendedor;
+  zona?: string;
+  activo: boolean;
+
+  vendedores_asignados?: RutaVendedor[];
   clientes?: Cliente[];
+}
+
+// RUTA_VENDEDOR 
+export interface RutaVendedor {
+  id_ruta_vendedor: number;
+  id_ruta: number;
+  id_vendedor: number;
+  fecha_asignacion: Date;
+  activo: boolean;
+
+  ruta?: Ruta;
+  vendedor?: Vendedor;
 }
 
 // CLIENTES
@@ -61,28 +106,14 @@ export interface Cliente {
   id_cliente: number;
   codigo_cliente: string;
   nombre: string;
-  direccion: string;
-  telefono: string;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
   id_ruta: number;
-  
+  activo: boolean;
+
   ruta?: Ruta;
   creditos?: Credito[];
-}
-
-// PRODUCTOS
-export interface Producto {
-  id_producto: number;
-  nombre: string;
-  categoria: string;
-  precio_contado: number;
-  precio_credito: number;
-  created_at?: Date;
-  updated_at?: Date;
-  
-  inventario_bodega?: InventarioBodega;
-  inventario_vendedores?: InventarioVendedor[];
-  creditos?: Credito[];
-  movimientos?: MovimientoInventario[];
 }
 
 // INVENTARIO BODEGA
@@ -91,6 +122,8 @@ export interface InventarioBodega {
   id_producto: number;
   stock_total: number;
   stock_disponible: number;
+  updated_at?: Date;
+
   producto?: Producto;
 }
 
@@ -100,43 +133,76 @@ export interface InventarioVendedor {
   id_vendedor: number;
   id_producto: number;
   cantidad: number;
-  
+  fecha_asignacion: Date;
+  updated_at?: Date;
+
   vendedor?: Vendedor;
   producto?: Producto;
+}
+
+// TIPO MOVIMIENTO
+export interface TipoMovimiento {
+  id_tipo_movimiento: number;
+  nombre_tipo: string; // 'ENTRADA_COMPRA', 'SALIDA_VENTA', 'TRASPASO', 'AJUSTE'
+  factor: number; // 1 para entrada, -1 para salida
+  descripcion?: string;
+
+  movimientos?: MovimientoInventario[];
 }
 
 // MOVIMIENTOS DE INVENTARIO
 export interface MovimientoInventario {
   id_movimiento: number;
   id_producto: number;
-  tipo: "ENTRADA" | "SALIDA" | "AJUSTE";
+  id_tipo_movimiento: number;
   cantidad: number;
-  origen: string;
-  destino: string;
-  referencia?: string;
-  fecha: Date;
-  
+  origen: string; // 'BODEGA', 'VENDEDOR:ID', 'CLIENTE:ID'
+  destino: string; // 'BODEGA', 'VENDEDOR:ID', 'CLIENTE:ID'
+  referencia?: string; // Número de factura, pedido, etc.
+  observacion?: string;
+  fecha_movimiento: Date;
+  id_usuario_registra: number;
+
   producto?: Producto;
+  tipo_movimiento?: TipoMovimiento;
+  usuario_registra?: Usuario;
 }
 
 // CRÉDITOS
 export interface Credito {
   id_credito: number;
   id_cliente: number;
-  id_producto: number;
-  cantidad: number;
+  id_vendedor: number;
   monto_total: number;
   cuota: number;
   frecuencia_pago: "SEMANAL" | "QUINCENAL" | "MENSUAL";
+  numero_cuotas: number;
   saldo_pendiente: number;
-  estado: "ACTIVO" | "MOROSO" | "PAGADO" | "CANCELADO";
+  estado: "ACTIVO" | "MORA" | "PAGADO" | "CANCELADO";
   fecha_inicio: Date;
+  fecha_vencimiento: Date;
   created_at?: Date;
   updated_at?: Date;
-  
+  id_usuario_crea: number;
+
   cliente?: Cliente;
-  producto?: Producto;
+  vendedor?: Vendedor;
+  usuario_crea?: Usuario;
+  detalles?: CreditoDetalle[];
   pagos?: Pago[];
+}
+
+// CREDITO_DETALLE
+export interface CreditoDetalle {
+  id_detalle: number;
+  id_credito: number;
+  id_producto: number;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+
+  credito?: Credito;
+  producto?: Producto;
 }
 
 // PAGOS
@@ -145,8 +211,10 @@ export interface Pago {
   id_credito: number;
   monto_pagado: number;
   fecha_pago: Date;
+  metodo_pago?: string; // 'EFECTIVO', 'TRANSFERENCIA', 'TARJETA'
   registrado_por: number;
-  
+  created_at?: Date;
+
   credito?: Credito;
   usuario?: Usuario;
 }
@@ -169,7 +237,7 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  user: Omit<Usuario, "password">; // User sin password
+  user: Omit<Usuario, "password">;
   token: string;
 }
 
@@ -208,45 +276,118 @@ export interface UpdateVendedorDTO {
   activo?: boolean;
 }
 
-// CLIENTES DTOs
-export interface CreateClienteDTO {
-  codigo_cliente: string;
-  nombre: string;
-  direccion: string;
-  telefono: string;
-  id_ruta: number;
+// CATEGORIAS DTOs
+export interface CreateCategoriaDTO {
+  nombre_categoria: string;
+  descripcion?: string;
+  activo?: boolean;
+}
+
+export interface UpdateCategoriaDTO {
+  nombre_categoria?: string;
+  descripcion?: string;
+  activo?: boolean;
 }
 
 // PRODUCTOS DTOs
 export interface CreateProductoDTO {
   nombre: string;
-  categoria: string;
+  id_categoria: number;
   precio_contado: number;
   precio_credito: number;
 }
 
 export interface UpdateProductoDTO {
   nombre?: string;
-  categoria?: string;
+  id_categoria?: number;
   precio_contado?: number;
   precio_credito?: number;
+}
+
+// RUTAS DTOs
+export interface CreateRutaDTO {
+  codigo_ruta: string;
+  nombre_ruta: string;
+  zona?: string;
+  activo?: boolean;
+}
+
+export interface UpdateRutaDTO {
+  codigo_ruta?: string;
+  nombre_ruta?: string;
+  zona?: string;
+  activo?: boolean;
+}
+
+// RUTA_VENDEDOR DTOs
+export interface AsignarRutaVendedorDTO {
+  id_ruta: number;
+  id_vendedor: number;
+  fecha_asignacion?: Date;
+  activo?: boolean;
+}
+
+// CLIENTES DTOs
+export interface CreateClienteDTO {
+  codigo_cliente: string;
+  nombre: string;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
+  id_ruta: number;
+  activo?: boolean;
+}
+
+export interface UpdateClienteDTO {
+  nombre?: string;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
+  id_ruta?: number;
+  activo?: boolean;
+}
+
+// INVENTARIO DTOs
+export interface AsignarInventarioVendedorDTO {
+  id_vendedor: number;
+  id_producto: number;
+  cantidad: number;
+}
+
+export interface TransferirInventarioDTO {
+  id_producto: number;
+  cantidad: number;
+  origen: string; // 'BODEGA' o 'VENDEDOR:ID'
+  destino: string; // 'BODEGA' o 'VENDEDOR:ID' o 'CLIENTE:ID'
+  referencia?: string;
+  observacion?: string;
 }
 
 // CRÉDITOS DTOs
 export interface CreateCreditoDTO {
   id_cliente: number;
-  id_producto: number;
-  cantidad: number;
-  monto_total: number;
+  id_vendedor: number;
+  productos: {
+    id_producto: number;
+    cantidad: number;
+    precio_unitario: number;
+  }[];
   cuota: number;
   frecuencia_pago: "SEMANAL" | "QUINCENAL" | "MENSUAL";
-  saldo_pendiente: number;
+  numero_cuotas: number;
   fecha_inicio: Date;
+  fecha_vencimiento: Date;
 }
 
+export interface UpdateCreditoEstadoDTO {
+  estado: "ACTIVO" | "MORA" | "PAGADO" | "CANCELADO";
+}
+
+// PAGOS DTOs
 export interface CreatePagoDTO {
   id_credito: number;
   monto_pagado: number;
+  metodo_pago?: string;
   registrado_por: number;
 }
 
@@ -270,7 +411,7 @@ export interface PaginatedResponse<T> {
 }
 
 // ============================================
-// UNION TYPES ÚTILES
+// ENUMS Y UNION TYPES
 // ============================================
 
 export type ModelType =
@@ -278,49 +419,63 @@ export type ModelType =
   | Rol
   | UsuarioRol
   | Vendedor
-  | Ruta
-  | Cliente
+  | Categoria
   | Producto
+  | Ruta
+  | RutaVendedor
+  | Cliente
   | InventarioBodega
   | InventarioVendedor
+  | TipoMovimiento
   | MovimientoInventario
   | Credito
+  | CreditoDetalle
   | Pago;
 
-export type RoleName = "ADMIN" | "VENDEDOR" | "SUPERVISOR";
+export type RoleName = "ADMIN" | "VENDEDOR" | "SUPERVISOR" | "BODEGA";
+
+export type FrecuenciaPago = "SEMANAL" | "QUINCENAL" | "MENSUAL";
+export type EstadoCredito = "ACTIVO" | "MORA" | "PAGADO" | "CANCELADO";
+export type MetodoPago = "EFECTIVO" | "TRANSFERENCIA" | "TARJETA";
 
 // ============================================
 // TIPOS PARA PRISMA (si necesitas los tipos exactos)
 // ============================================
 
-// Opcional: Importar tipos de Prisma si los necesitas específicamente
 import type {
   usuarios as PrismaUsuario,
   roles as PrismaRol,
   usuario_roles as PrismaUsuarioRol,
   vendedores as PrismaVendedor,
-  rutas as PrismaRuta,
-  clientes as PrismaCliente,
+  categorias as PrismaCategoria,
   productos as PrismaProducto,
+  rutas as PrismaRuta,
+  ruta_vendedor as PrismaRutaVendedor,
+  clientes as PrismaCliente,
   inventario_bodega as PrismaInventarioBodega,
   inventario_vendedor as PrismaInventarioVendedor,
+  tipo_movimiento as PrismaTipoMovimiento,
   movimientos_inventario as PrismaMovimientoInventario,
   creditos as PrismaCredito,
+  credito_detalle as PrismaCreditoDetalle,
   pagos as PrismaPago,
 } from "@prisma/client";
 
-// Exportarlos con alias si los necesitas
 export type {
   PrismaUsuario,
   PrismaRol,
   PrismaUsuarioRol,
   PrismaVendedor,
-  PrismaRuta,
-  PrismaCliente,
+  PrismaCategoria,  
   PrismaProducto,
+  PrismaRuta,
+  PrismaRutaVendedor,
+  PrismaCliente,
   PrismaInventarioBodega,
   PrismaInventarioVendedor,
+  PrismaTipoMovimiento,
   PrismaMovimientoInventario,
   PrismaCredito,
+  PrismaCreditoDetalle,
   PrismaPago,
 };
