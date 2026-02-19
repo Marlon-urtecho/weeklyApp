@@ -2,30 +2,70 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authMiddleware } from '../../middleware/auth.middleware'
 import { prisma } from '../../db'
 
+const normalizeRoles = (roles?: string[]) => (roles || []).map((r) => (r || '').toUpperCase())
+const isPrivilegedRole = (roles: string[]) =>
+  roles.some((r) => r.includes('ADMIN') || r.includes('SUPERVISOR'))
+const isSellerRole = (roles: string[]) => roles.some((r) => r.includes('VENDEDOR'))
+
+async function getSellerRouteIds(idUsuario: number): Promise<number[]> {
+  const vendedor = await prisma.vendedores.findUnique({
+    where: { id_usuario: idUsuario },
+    include: {
+      ruta_vendedor: {
+        where: { activo: true },
+        select: { id_ruta: true }
+      }
+    }
+  })
+
+  if (!vendedor) return []
+  return vendedor.ruta_vendedor.map((rv) => rv.id_ruta)
+}
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await authMiddleware(req)
     if (auth instanceof NextResponse) return auth
+    const roles = normalizeRoles((auth as any).roles)
+    const privileged = isPrivilegedRole(roles)
+    const seller = isSellerRole(roles)
+    if (!privileged && !seller) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+    }
 
     const { searchParams } = new URL(req.url)
     const activas = searchParams.get('activas') === 'true'
     const includeAll = searchParams.get('include') === 'all'
 
-    const rutas = await prisma.rutas.findMany({
+    let rutas = await prisma.rutas.findMany({
       where: activas ? { activo: true } : undefined,
       include: includeAll || activas ? {
         ruta_vendedor: {
-          where: activas ? { activo: true } : undefined,
+          where: { activo: true },
           include: {
             vendedores: true,
           },
         },
-        clientes: true,
+        clientes: {
+          include: {
+            creditos: {
+              select: {
+                id_credito: true,
+                estado: true
+              }
+            }
+          }
+        },
       } : undefined,
       orderBy: {
         id_ruta: 'asc',
       },
     })
+
+    if (!privileged && seller) {
+      const allowedRouteIds = await getSellerRouteIds(Number((auth as any).id))
+      rutas = rutas.filter((ruta) => allowedRouteIds.includes(ruta.id_ruta))
+    }
 
     if (!includeAll && !activas) {
       return NextResponse.json(rutas)
@@ -43,7 +83,14 @@ export async function GET(req: NextRequest) {
         fecha_asignacion: rv.fecha_asignacion,
         activo: rv.activo,
       })),
-      clientes: ruta.clientes || [],
+      clientes: (ruta.clientes || []).map((c: any) => ({
+        id_cliente: c.id_cliente,
+        codigo_cliente: c.codigo_cliente,
+        nombre: c.nombre,
+        telefono: c.telefono,
+        activo: c.activo,
+        creditos: c.creditos || []
+      })),
     }))
 
     return NextResponse.json(response)
@@ -59,6 +106,10 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await authMiddleware(req)
     if (auth instanceof NextResponse) return auth
+    const roles = normalizeRoles((auth as any).roles)
+    if (!isPrivilegedRole(roles)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+    }
 
     const body = await req.json()
     const codigo_ruta = body?.codigo_ruta?.trim()

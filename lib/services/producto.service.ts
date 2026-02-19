@@ -13,7 +13,7 @@ export class ProductoService {
   }
 
   async getAll() {
-    return this.productoRepository.findAll()
+    return this.productoRepository.findAllWithRelations()
   }
 
   async getById(id: number) {
@@ -48,7 +48,13 @@ export class ProductoService {
     const producto = await this.productoRepository.findById(id)
     if (!producto) throw new Error('Producto no encontrado')
 
-    return this.productoRepository.delete(id)
+    return prisma.$transaction(async (tx) => {
+      await tx.credito_detalle.deleteMany({ where: { id_producto: id } })
+      await tx.movimientos_inventario.deleteMany({ where: { id_producto: id } })
+      await tx.inventario_vendedor.deleteMany({ where: { id_producto: id } })
+      await tx.inventario_bodega.deleteMany({ where: { id_producto: id } })
+      return tx.productos.delete({ where: { id_producto: id } })
+    })
   }
 
   async getByCategoria(id_categoria: number) {

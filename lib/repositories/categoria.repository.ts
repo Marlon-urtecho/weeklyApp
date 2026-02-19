@@ -18,6 +18,17 @@ export class CategoriaRepository extends BaseRepository<CategoriaPrisma, CreateC
     this.idField = 'id_categoria'
   }
 
+  async findAll(): Promise<CategoriaPrisma[]> {
+    return this.model.findMany({
+      include: {
+        productos: true
+      },
+      orderBy: {
+        nombre_categoria: 'asc'
+      }
+    })
+  }
+
   async findByNombre(nombre: string): Promise<CategoriaPrisma | null> {
     return this.model.findUnique({
       where: { nombre_categoria: nombre }

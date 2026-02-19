@@ -10,7 +10,20 @@ export async function POST(req: NextRequest) {
     const authService = new AuthService()
     const result = await authService.login(validated)
 
-    return NextResponse.json(result)
+    const response = NextResponse.json({
+      user: result.user,
+      token: result.token
+    })
+
+    response.cookies.set('refresh_token', result.refresh_token || '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/api/auth',
+      maxAge: 60 * 60 * 24 * 30
+    })
+
+    return response
   } catch (error: any) {
     if (error.name === 'ZodError') {
       return NextResponse.json(

@@ -3,7 +3,7 @@ import { InventarioVendedorService } from '../../../../services/inventario-vende
 import { authMiddleware } from '../../../../middleware/auth.middleware'
 
 interface Params {
-  params: { id_vendedor: string }
+  params: Promise<{ id_vendedor: string }>
 }
 
 export async function GET(req: NextRequest, { params }: Params) {
@@ -11,7 +11,11 @@ export async function GET(req: NextRequest, { params }: Params) {
     const auth = await authMiddleware(req)
     if (auth instanceof NextResponse) return auth
 
-    const id_vendedor = parseInt(params.id_vendedor)
+    const { id_vendedor: idParam } = await params
+    const id_vendedor = parseInt(idParam, 10)
+    if (Number.isNaN(id_vendedor)) {
+      return NextResponse.json({ error: 'ID de vendedor inválido' }, { status: 400 })
+    }
     const service = new InventarioVendedorService()
     const inventario = await service.getByVendedor(id_vendedor)
 

@@ -4,7 +4,7 @@ import { UpdateVendedoresDTO } from '../../../dto/vendedor.dto'
 import { authMiddleware } from '../../../middleware/auth.middleware'
 
 interface Params {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function GET(req: NextRequest, { params }: Params) {
@@ -12,7 +12,11 @@ export async function GET(req: NextRequest, { params }: Params) {
     const auth = await authMiddleware(req)
     if (auth instanceof NextResponse) return auth
 
-    const id = parseInt(params.id)
+    const { id: idParam } = await params
+    const id = parseInt(idParam, 10)
+    if (Number.isNaN(id)) {
+      return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
+    }
     const service = new VendedorService()
     const vendedor = await service.getById(id)
 
@@ -31,7 +35,11 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const auth = await authMiddleware(req)
     if (auth instanceof NextResponse) return auth
 
-    const id = parseInt(params.id)
+    const { id: idParam } = await params
+    const id = parseInt(idParam, 10)
+    if (Number.isNaN(id)) {
+      return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
+    }
     const body = await req.json()
     const validated = UpdateVendedoresDTO.parse(body)
 
@@ -58,7 +66,11 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     const auth = await authMiddleware(req)
     if (auth instanceof NextResponse) return auth
 
-    const id = parseInt(params.id)
+    const { id: idParam } = await params
+    const id = parseInt(idParam, 10)
+    if (Number.isNaN(id)) {
+      return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
+    }
     const service = new VendedorService()
     await service.delete(id)
 

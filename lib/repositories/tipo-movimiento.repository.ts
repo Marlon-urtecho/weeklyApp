@@ -6,11 +6,17 @@ export class TipoMovimientoRepository extends BaseRepository<TipoMovimiento> {
   constructor() {
     super()
     this.model = prisma.tipo_movimiento
+    this.idField = 'id_tipo_movimiento'
   }
 
   async findByNombre(nombre: string): Promise<TipoMovimiento | null> {
-    return this.model.findUnique({
-      where: { nombre_tipo: nombre }
+    return this.model.findFirst({
+      where: {
+        nombre_tipo: {
+          equals: nombre,
+          mode: 'insensitive'
+        }
+      }
     })
   }
 

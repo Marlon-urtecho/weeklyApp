@@ -56,14 +56,14 @@ model usuario_roles {
 // MODEL VENDEDORES
 model vendedores {
   id_vendedor Int            @id @default(autoincrement()) @map("id_vendedor")
-  id_usuario  Int            @unique @map("id_usuario")
+  id_usuario  Int?           @unique @map("id_usuario")
   nombre      String         @map("nombre")
   telefono    String         @map("telefono")
   activo      Boolean        @default(true) @map("activo")
   created_at  DateTime       @default(now()) @map("created_at")
   updated_at  DateTime       @updatedAt @map("updated_at")
   
-  usuarios            usuarios              @relation(fields: [id_usuario], references: [id_usuario])
+  usuarios            usuarios?             @relation(fields: [id_usuario], references: [id_usuario])
   ruta_vendedor       ruta_vendedor[]
   inventario_vendedor inventario_vendedor[]
   creditos            creditos[]
@@ -98,6 +98,7 @@ model productos {
   inventario_vendedor     inventario_vendedor[]
   movimientos_inventario  movimientos_inventario[]
   credito_detalle         credito_detalle[]
+  pago_detalle_producto   pago_detalle_producto[]
   
   @@map("productos")
 }
@@ -231,6 +232,7 @@ model creditos {
   usuarios_crea    usuarios   @relation("creditos_creados", fields: [id_usuario_crea], references: [id_usuario])
   credito_detalle  credito_detalle[]
   pagos            pagos[]
+  pago_detalle_producto pago_detalle_producto[]
   
   @@map("creditos")
 }
@@ -263,6 +265,23 @@ model pagos {
   
   creditos       creditos  @relation(fields: [id_credito], references: [id_credito])
   usuarios       usuarios  @relation(fields: [registrado_por], references: [id_usuario])
+  pago_detalle_producto pago_detalle_producto[]
   
   @@map("pagos")
+}
+
+model pago_detalle_producto {
+  id_pago_detalle Int      @id @default(autoincrement()) @map("id_pago_detalle")
+  id_pago         Int      @map("id_pago")
+  id_credito      Int      @map("id_credito")
+  id_producto     Int      @map("id_producto")
+  monto_pagado    Decimal  @map("monto_pagado")
+  created_at      DateTime @default(now()) @map("created_at")
+
+  pagos     pagos     @relation(fields: [id_pago], references: [id_pago])
+  creditos  creditos  @relation(fields: [id_credito], references: [id_credito])
+  productos productos @relation(fields: [id_producto], references: [id_producto])
+
+  @@index([id_credito, id_producto])
+  @@map("pago_detalle_producto")
 }

@@ -29,8 +29,9 @@ export const createCreditoDTO = z.object({
     id_vendedor: z.number().int().positive("ID del vendedor requerido"),
     monto_total: z.number().positive("Monto total requerido").optional(),
     cuota: z.number().positive("Cuota requerida"),
-    frecuencia_pago: z.string().refine(value => ["SEMANAL", "QUINCENAL", "MENSUAL"].includes(value), {
-        message: "Frecuencia de pago inválida. Debe ser SEMANAL, QUINCENAL o MENSUAL"
+    frecuencia_pago: z.string().refine(value =>
+        ["SEMANAL", "QUINCENAL", "MENSUAL"].includes(value) || /^DIAS_\d+$/i.test(value), {
+        message: "Frecuencia de pago inválida. Debe ser SEMANAL, QUINCENAL, MENSUAL o DIAS_n"
     }),
     numero_cuotas: z.number().int().positive("Número de cuotas requerido"),
     fecha_inicio: z.date(),
@@ -42,8 +43,9 @@ export const createCreditoDTO = z.object({
 export const updateCreditoDTO = z.object({
     monto_total: z.number().positive().optional(),
     cuota: z.number().positive().optional(),
-    frecuencia_pago: z.string().refine(value => ["SEMANAL", "QUINCENAL", "MENSUAL"].includes(value), {
-        message: "Frecuencia de pago inválida. Debe ser SEMANAL, QUINCENAL o MENSUAL"
+    frecuencia_pago: z.string().refine(value =>
+        ["SEMANAL", "QUINCENAL", "MENSUAL"].includes(value) || /^DIAS_\d+$/i.test(value), {
+        message: "Frecuencia de pago inválida. Debe ser SEMANAL, QUINCENAL, MENSUAL o DIAS_n"
     }).optional(),
     numero_cuotas: z.number().int().positive().optional(),
     saldo_pendiente: z.number().positive().optional(),

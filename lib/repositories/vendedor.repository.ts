@@ -6,6 +6,24 @@ export class VendedorRepository extends BaseRepository<Vendedor> {
   constructor() {
     super()
     this.model = prisma.vendedores
+    this.idField = 'id_vendedor'
+  }
+
+  async findAll(): Promise<Vendedor[]> {
+    return this.model.findMany({
+      include: {
+        usuarios: true,
+        ruta_vendedor: {
+          where: { activo: true },
+          include: {
+            rutas: true
+          }
+        }
+      },
+      orderBy: {
+        nombre: 'asc'
+      }
+    })
   }
 
   async findByUsuarioId(id_usuario: number): Promise<Vendedor | null> {
@@ -45,10 +63,14 @@ export class VendedorRepository extends BaseRepository<Vendedor> {
       include: {
         usuarios: true,
         ruta_vendedor: {
+          where: { activo: true },
           include: {
             rutas: true
           }
         }
+      },
+      orderBy: {
+        nombre: 'asc'
       }
     })
   }

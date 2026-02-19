@@ -29,6 +29,13 @@ export class CategoriaService {
     const categoria = await this.categoriaRepository.findById(id)
     if (!categoria) throw new Error('Categoría no encontrada')
 
+    if (data.nombre_categoria && data.nombre_categoria !== (categoria as any).nombre_categoria) {
+      const existente = await this.categoriaRepository.findByNombre(data.nombre_categoria)
+      if (existente && (existente as any).id_categoria !== id) {
+        throw new Error('La categoría ya existe')
+      }
+    }
+
     return this.categoriaRepository.update(id, data)
   }
 

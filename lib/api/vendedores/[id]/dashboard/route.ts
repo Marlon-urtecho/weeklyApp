@@ -3,7 +3,7 @@ import { VendedorService } from '../../../../services/vendedor.service'
 import { authMiddleware } from '../../../../middleware/auth.middleware'
 
 interface Params {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function GET(req: NextRequest, { params }: Params) {
@@ -11,7 +11,11 @@ export async function GET(req: NextRequest, { params }: Params) {
     const auth = await authMiddleware(req)
     if (auth instanceof NextResponse) return auth
 
-    const id = parseInt(params.id)
+    const { id: idParam } = await params
+    const id = parseInt(idParam, 10)
+    if (Number.isNaN(id)) {
+      return NextResponse.json({ error: 'ID de vendedor inválido' }, { status: 400 })
+    }
     const service = new VendedorService()
     const dashboard = await service.getDashboard(id)
 

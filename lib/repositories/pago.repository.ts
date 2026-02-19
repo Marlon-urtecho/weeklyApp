@@ -6,6 +6,34 @@ export class PagoRepository extends BaseRepository<Pago> {
   constructor() {
     super()
     this.model = prisma.pagos
+    this.idField = 'id_pago'
+  }
+
+  async findAll(): Promise<Pago[]> {
+    return this.model.findMany({
+      include: {
+        usuarios: true,
+        pago_detalle_producto: {
+          include: {
+            productos: true
+          }
+        },
+        creditos: {
+          include: {
+            clientes: true,
+            vendedores: true,
+            credito_detalle: {
+              include: {
+                productos: true
+              }
+            }
+          }
+        }
+      } as any,
+      orderBy: {
+        fecha_pago: 'desc'
+      }
+    })
   }
 
   async findByCredito(id_credito: number): Promise<Pago[]> {
@@ -13,12 +41,17 @@ export class PagoRepository extends BaseRepository<Pago> {
       where: { id_credito },
       include: {
         usuarios: true,
+        pago_detalle_producto: {
+          include: {
+            productos: true
+          }
+        },
         creditos: {
           include: {
             clientes: true
           }
         }
-      },
+      } as any,
       orderBy: {
         fecha_pago: 'desc'
       }
@@ -53,10 +86,20 @@ export class PagoRepository extends BaseRepository<Pago> {
         creditos: {
           include: {
             clientes: true,
-            vendedores: true
+            vendedores: true,
+            credito_detalle: {
+              include: {
+                productos: true
+              }
+            }
           }
         },
-        usuarios: true
+        usuarios: true,
+        pago_detalle_producto: {
+          include: {
+            productos: true
+          }
+        }
       },
       orderBy: {
         fecha_pago: 'desc'

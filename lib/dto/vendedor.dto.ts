@@ -1,9 +1,8 @@
-import { create } from 'node:domain'
 import { z } from 'zod'
 
 //dto para crear vendedor 
 export const CreateVendedorDto = z.object({
-    id_usuario: z.number().int().positive("ID del usuario requerido"),
+    id_usuario: z.number().int().positive("ID de usuario invalido").optional().nullable(),
     nombre: z.string()
     .min(3, "Minimimode 3 caracteres")
     .max(100, "Maximo de 100 caracteres"),
@@ -26,7 +25,7 @@ export const UpdateVendedoresDTO = z.object({
 // para obtener vendedor
 export const VendedorResponseDTO = z.object({
     id_vendedor: z.number().int().positive(),
-    id_usuario: z.number().int().positive(),
+    id_usuario: z.number().int().positive().optional().nullable(),
     nombre: z.string(),
     telefono: z.string(),
     activo: z.boolean()

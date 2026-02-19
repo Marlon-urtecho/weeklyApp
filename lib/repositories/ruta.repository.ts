@@ -6,6 +6,7 @@ export class RutaRepository extends BaseRepository<Ruta> {
   constructor() {
     super()
     this.model = prisma.rutas
+    this.idField = 'id_ruta'
   }
 
   async findByCodigo(codigo: string): Promise<Ruta | null> {

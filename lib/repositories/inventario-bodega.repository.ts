@@ -9,6 +9,21 @@ export class InventarioBodegaRepository extends BaseRepository<InventarioBodega>
     this.idField = 'id_inventario' 
   }
 
+  async findAll(): Promise<InventarioBodega[]> {
+    return this.model.findMany({
+      include: {
+        productos: {
+          include: {
+            categorias: true
+          }
+        }
+      },
+      orderBy: {
+        id_producto: 'asc'
+      }
+    })
+  }
+
   async findByProductoId(id_producto: number): Promise<InventarioBodega | null> {
     return this.model.findUnique({
       where: { id_producto },

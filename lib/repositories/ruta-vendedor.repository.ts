@@ -6,9 +6,34 @@ export class RutaVendedorRepository extends BaseRepository<RutaVendedor> {
   constructor() {
     super()
     this.model = prisma.ruta_vendedor
+    this.idField = 'id_ruta_vendedor'
   }
 
   async asignarRuta(id_ruta: number, id_vendedor: number): Promise<RutaVendedor> {
+    const existente = await this.model.findUnique({
+      where: {
+        id_ruta_id_vendedor: {
+          id_ruta,
+          id_vendedor
+        }
+      }
+    })
+
+    if (existente) {
+      return this.model.update({
+        where: {
+          id_ruta_id_vendedor: {
+            id_ruta,
+            id_vendedor
+          }
+        },
+        data: {
+          activo: true,
+          fecha_asignacion: new Date()
+        }
+      })
+    }
+
     return this.model.create({
       data: {
         id_ruta,

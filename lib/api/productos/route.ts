@@ -10,10 +10,11 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const id_categoria = searchParams.get('categoria')
+    const idCategoriaNumerico = id_categoria ? parseInt(id_categoria) : null
 
     const service = new ProductoService()
-    const productos = id_categoria
-      ? await service.getByCategoria(parseInt(id_categoria))
+    const productos = idCategoriaNumerico && !Number.isNaN(idCategoriaNumerico)
+      ? await service.getByCategoria(idCategoriaNumerico)
       : await service.getAll()
 
     return NextResponse.json(productos)

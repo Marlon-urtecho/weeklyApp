@@ -9,7 +9,7 @@ export class ClienteService {
   }
 
   async getAll() {
-    return this.clienteRepository.findAll()
+    return this.clienteRepository.findAllWithRelations()
   }
 
   async getById(id: number) {

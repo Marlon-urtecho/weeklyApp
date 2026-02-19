@@ -239,6 +239,7 @@ export interface RegisterRequest {
 export interface AuthResponse {
   user: Omit<Usuario, "password">;
   token: string;
+  refresh_token?: string;
 }
 
 // USUARIOS DTOs

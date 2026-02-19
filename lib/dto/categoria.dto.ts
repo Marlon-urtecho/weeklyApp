@@ -1,27 +1,26 @@
-import {z} from 'zod'
+import { z } from 'zod'
 
 // DTO para crear categoria
 export const createcategoriaDTO = z.object({
-    id_categoria: z.number().int().positive("ID de la categoria requerido"),
-    nombre_categoria: z.string().min(3,"almenos 3 caracteres requeridos").max(100),
-    descripcion: z.string().min(3,"almenos 3 caracteres requeridos").max(255),
-    activo: z.boolean().default(true).optional(),
+  nombre_categoria: z.string().min(3, 'almenos 3 caracteres requeridos').max(100),
+  descripcion: z.string().min(3, 'almenos 3 caracteres requeridos').max(255).optional(),
+  activo: z.boolean().default(true).optional()
 })
 
 // DTO para actualizar categoria
 export const updatecategoriaDTO = z.object({
-    nombre_categoria: z.string().min(3,"almenos 3 caracteres requeridos").max(100).optional(),
-    descripcion: z.string().min(3,"almenos 3 caracteres requeridos").max(255).optional(),
-    activo: z.boolean().optional(),
+  nombre_categoria: z.string().min(3, 'almenos 3 caracteres requeridos').max(100).optional(),
+  descripcion: z.string().min(3, 'almenos 3 caracteres requeridos').max(255).optional(),
+  activo: z.boolean().optional()
 })
 
 
 // DTO para obtener categoria
 export const categoriaResponseDTO = z.object({
-    id_categoria: z.number().int().positive(),
-    nombre_categoria: z.string(),
-    descripcion: z.string(),
-    activo: z.boolean()
+  id_categoria: z.number().int().positive(),
+  nombre_categoria: z.string(),
+  descripcion: z.string().nullable().optional(),
+  activo: z.boolean()
 })
 
 // DTO para obtener lista de categorias

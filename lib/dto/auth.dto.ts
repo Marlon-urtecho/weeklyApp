@@ -16,5 +16,10 @@ export const RegisterDTO = z.object({
   roles: z.array(z.number()).optional()
 })
 
+export const RefreshTokenDTO = z.object({
+  refresh_token: z.string().min(10, 'Refresh token inválido')
+})
+
 export type LoginDTOType = z.infer<typeof LoginDTO>
 export type RegisterDTOType = z.infer<typeof RegisterDTO>
+export type RefreshTokenDTOType = z.infer<typeof RefreshTokenDTO>

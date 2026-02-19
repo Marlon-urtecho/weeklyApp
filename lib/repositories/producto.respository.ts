@@ -6,6 +6,21 @@ export class ProductoRepository extends BaseRepository<Producto> {
   constructor() {
     super()
     this.model = prisma.productos
+    this.idField = 'id_producto'
+  }
+
+  async findAllWithRelations(): Promise<Producto[]> {
+    return this.model.findMany({
+      include: {
+        categorias: true,
+        inventario_bodega: true,
+        inventario_vendedor: {
+          include: {
+            vendedores: true
+          }
+        }
+      }
+    })
   }
 
   async findByCategoria(id_categoria: number): Promise<Producto[]> {
