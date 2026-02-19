@@ -15,9 +15,11 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "db:init": "npm run prisma:generate && npm run prisma:migrate",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:setup:prod": "npm run prisma:generate && npm run prisma:migrate:deploy"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

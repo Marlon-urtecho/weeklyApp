@@ -15,10 +15,11 @@ export async function POST(req: NextRequest) {
       token: result.token
     })
 
+    const isProduction = process.env.NODE_ENV === 'production'
     response.cookies.set('refresh_token', result.refresh_token || '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/api/auth',
       maxAge: 60 * 60 * 24 * 30
     })

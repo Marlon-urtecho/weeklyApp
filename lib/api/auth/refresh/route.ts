@@ -22,11 +22,12 @@ export async function POST(req: NextRequest) {
     const authService = new AuthService()
     const tokens = await authService.refresh(refreshToken)
 
+    const isProduction = process.env.NODE_ENV === 'production'
     const response = NextResponse.json({ token: tokens.token })
     response.cookies.set('refresh_token', tokens.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/api/auth',
       maxAge: 60 * 60 * 24 * 30
     })
