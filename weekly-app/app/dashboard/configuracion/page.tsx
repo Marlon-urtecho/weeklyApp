@@ -8,43 +8,20 @@ import { Input } from '@/components/ui/Input'
 import { Tabs, TabPanel } from '@/components/ui/Tabs'
 import { useToast } from '@/contexts/ToastContext'
 import InstallAppCard from '@/components/pwa/InstallAppCard'
-
-type GeneralConfig = {
-  nombreEmpresa: string
-  nit: string
-  direccion: string
-  telefono: string
-  email: string
-  sitioWeb: string
-}
-
-type InventarioConfig = {
-  alertaStockBajo: string
-  controlLotes: string
-  notificarStockBajo: string
-}
-
-type NotificacionesConfig = {
-  emailNotificaciones: string
-  notificarCreditosVencidos: string
-  notificarStockBajo: string
-  notificarPagos: string
-  emailReportes: string
-}
-
-type SeguridadConfig = {
-  intentosLogin: string
-  tiempoBloqueo: string
-  sesionTimeout: string
-  dosFactores: string
-}
-
-type ConfigSnapshot = {
-  general: GeneralConfig
-  inventario: InventarioConfig
-  notificaciones: NotificacionesConfig
-  seguridad: SeguridadConfig
-}
+import {
+  CONFIG_STORAGE_KEY,
+  CONFIG_UPDATED_EVENT,
+  DEFAULT_GENERAL,
+  DEFAULT_INVENTARIO,
+  DEFAULT_NOTIFICACIONES,
+  DEFAULT_SEGURIDAD,
+  normalizeGeneralConfig,
+  type GeneralConfig,
+  type InventarioConfig,
+  type NotificacionesConfig,
+  type SeguridadConfig,
+  type ConfigSnapshot
+} from '@/lib/system-config'
 
 type ConfigBackup = {
   id: string
@@ -53,38 +30,7 @@ type ConfigBackup = {
   config: ConfigSnapshot
 }
 
-const CONFIG_STORAGE_KEY = 'weekly_config_v1'
 const BACKUPS_STORAGE_KEY = 'weekly_config_backups_v1'
-
-const DEFAULT_GENERAL: GeneralConfig = {
-  nombreEmpresa: 'Weekly',
-  nit: '00000000-0',
-  direccion: 'Ciudad de Guatemala',
-  telefono: '0000-0000',
-  email: 'info@weekly.app',
-  sitioWeb: 'https://weekly.app'
-}
-
-const DEFAULT_INVENTARIO: InventarioConfig = {
-  alertaStockBajo: '10',
-  controlLotes: 'false',
-  notificarStockBajo: 'true'
-}
-
-const DEFAULT_NOTIFICACIONES: NotificacionesConfig = {
-  emailNotificaciones: 'true',
-  notificarCreditosVencidos: 'true',
-  notificarStockBajo: 'true',
-  notificarPagos: 'true',
-  emailReportes: 'admin@weekly.app'
-}
-
-const DEFAULT_SEGURIDAD: SeguridadConfig = {
-  intentosLogin: '3',
-  tiempoBloqueo: '30',
-  sesionTimeout: '60',
-  dosFactores: 'false'
-}
 
 const buildSnapshot = (
   general: GeneralConfig,
@@ -130,7 +76,7 @@ export default function ConfiguracionPage() {
 
       if (savedConfig) {
         const parsed = JSON.parse(savedConfig) as Partial<ConfigSnapshot>
-        if (parsed.general) setGeneralConfig({ ...DEFAULT_GENERAL, ...parsed.general })
+        if (parsed.general) setGeneralConfig(normalizeGeneralConfig(parsed.general))
         if (parsed.inventario) setInventarioConfig({ ...DEFAULT_INVENTARIO, ...parsed.inventario })
         if (parsed.notificaciones) {
           setNotificacionesConfig({ ...DEFAULT_NOTIFICACIONES, ...parsed.notificaciones })
@@ -151,6 +97,7 @@ export default function ConfiguracionPage() {
 
   const persistConfig = (snapshot: ConfigSnapshot) => {
     localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(snapshot))
+    window.dispatchEvent(new CustomEvent(CONFIG_UPDATED_EVENT, { detail: snapshot }))
   }
 
   const persistBackups = (nextBackups: ConfigBackup[]) => {
@@ -203,12 +150,13 @@ export default function ConfiguracionPage() {
   }
 
   const applySnapshot = (snapshot: ConfigSnapshot) => {
-    setGeneralConfig({ ...DEFAULT_GENERAL, ...snapshot.general })
+    const normalizedGeneral = normalizeGeneralConfig(snapshot.general)
+    setGeneralConfig(normalizedGeneral)
     setInventarioConfig({ ...DEFAULT_INVENTARIO, ...snapshot.inventario })
     setNotificacionesConfig({ ...DEFAULT_NOTIFICACIONES, ...snapshot.notificaciones })
     setSeguridadConfig({ ...DEFAULT_SEGURIDAD, ...snapshot.seguridad })
     persistConfig({
-      general: { ...DEFAULT_GENERAL, ...snapshot.general },
+      general: normalizedGeneral,
       inventario: { ...DEFAULT_INVENTARIO, ...snapshot.inventario },
       notificaciones: { ...DEFAULT_NOTIFICACIONES, ...snapshot.notificaciones },
       seguridad: { ...DEFAULT_SEGURIDAD, ...snapshot.seguridad }
@@ -274,7 +222,7 @@ export default function ConfiguracionPage() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Información de la Empresa</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input label="Nombre de la Empresa" value={generalConfig.nombreEmpresa} onChange={(e) => setGeneralConfig({ ...generalConfig, nombreEmpresa: e.target.value })} />
-                <Input label="NIT" value={generalConfig.nit} onChange={(e) => setGeneralConfig({ ...generalConfig, nit: e.target.value })} />
+                <Input label="Número RUC" value={generalConfig.numeroRuc} onChange={(e) => setGeneralConfig({ ...generalConfig, numeroRuc: e.target.value })} />
                 <Input label="Dirección" value={generalConfig.direccion} onChange={(e) => setGeneralConfig({ ...generalConfig, direccion: e.target.value })} />
                 <Input label="Teléfono" value={generalConfig.telefono} onChange={(e) => setGeneralConfig({ ...generalConfig, telefono: e.target.value })} />
                 <Input label="Email" type="email" value={generalConfig.email} onChange={(e) => setGeneralConfig({ ...generalConfig, email: e.target.value })} />
@@ -377,17 +325,6 @@ export default function ConfiguracionPage() {
                 <Input label="Intentos máximos de login" type="number" value={seguridadConfig.intentosLogin} onChange={(e) => setSeguridadConfig({ ...seguridadConfig, intentosLogin: e.target.value })} />
                 <Input label="Tiempo de bloqueo (minutos)" type="number" value={seguridadConfig.tiempoBloqueo} onChange={(e) => setSeguridadConfig({ ...seguridadConfig, tiempoBloqueo: e.target.value })} />
                 <Input label="Timeout de sesión (minutos)" type="number" value={seguridadConfig.sesionTimeout} onChange={(e) => setSeguridadConfig({ ...seguridadConfig, sesionTimeout: e.target.value })} />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Autenticación de dos factores</label>
-                  <select
-                    value={seguridadConfig.dosFactores}
-                    onChange={(e) => setSeguridadConfig({ ...seguridadConfig, dosFactores: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
-                  >
-                    <option value="true">Activado</option>
-                    <option value="false">Desactivado</option>
-                  </select>
-                </div>
               </div>
               <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mt-4">
                 <p className="text-sm text-red-800 dark:text-red-200">

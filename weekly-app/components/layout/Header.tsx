@@ -5,6 +5,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { apiClient } from '@/lib/api/client'
+import {
+  CONFIG_UPDATED_EVENT,
+  getStockLowThreshold,
+  getStoredConfig,
+  toBool
+} from '@/lib/system-config'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -51,9 +57,19 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const loadNotifications = async () => {
     try {
       setLoadingNotifications(true)
+      const cfg = getStoredConfig()
+      const limiteStock = getStockLowThreshold(cfg)
+
+      const notificarCreditosVencidos = toBool(cfg.notificaciones.notificarCreditosVencidos)
+      const notificarPagos = toBool(cfg.notificaciones.notificarPagos)
+      const notificarStockBajo =
+        toBool(cfg.notificaciones.notificarStockBajo) && toBool(cfg.inventario.notificarStockBajo)
+
       const [dashboardRes, stockRes] = await Promise.allSettled([
         apiClient.get('/api/dashboard'),
-        apiClient.get('/api/inventario/bodega/stock-bajo?limite=5')
+        notificarStockBajo
+          ? apiClient.get(`/api/inventario/bodega/stock-bajo?limite=${limiteStock}`)
+          : Promise.resolve([])
       ])
 
       const now = new Date()
@@ -64,7 +80,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         const creditosVencidos = Number(dashboard?.general?.alertas?.creditosVencidos || 0)
         const pagosHoy = Array.isArray(dashboard?.creditos?.pagosHoy) ? dashboard.creditos.pagosHoy : []
 
-        if (creditosVencidos > 0) {
+        if (notificarCreditosVencidos && creditosVencidos > 0) {
           list.push({
             id: 'creditos-vencidos',
             title: 'Créditos vencidos',
@@ -75,7 +91,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           })
         }
 
-        if (pagosHoy.length > 0) {
+        if (notificarPagos && pagosHoy.length > 0) {
           const fechaUltimoPago = pagosHoy[0]?.fecha_pago ? new Date(pagosHoy[0].fecha_pago) : now
           list.push({
             id: 'pagos-hoy',
@@ -88,7 +104,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         }
       }
 
-      if (stockRes.status === 'fulfilled' && Array.isArray(stockRes.value) && stockRes.value.length > 0) {
+      if (notificarStockBajo && stockRes.status === 'fulfilled' && Array.isArray(stockRes.value) && stockRes.value.length > 0) {
         for (const item of stockRes.value.slice(0, 3)) {
           list.push({
             id: `stock-${item?.id_inventario ?? item?.id_producto ?? Math.random()}`,
@@ -102,10 +118,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
       }
 
       if (list.length === 0) {
+        const todoDesactivado = !notificarCreditosVencidos && !notificarPagos && !notificarStockBajo
         list.push({
           id: 'sin-alertas',
-          title: 'Sin alertas',
-          message: 'No hay notificaciones pendientes.',
+          title: todoDesactivado ? 'Notificaciones desactivadas' : 'Sin alertas',
+          message: todoDesactivado ? 'Activa notificaciones en Configuración para recibir avisos.' : 'No hay notificaciones pendientes.',
           time: getRelativeTime(now),
           href: '/dashboard',
           level: 'info'
@@ -122,7 +139,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
   useEffect(() => {
     loadNotifications()
     const interval = setInterval(loadNotifications, 60000)
-    return () => clearInterval(interval)
+    const handleConfigUpdate = () => {
+      loadNotifications()
+    }
+    window.addEventListener(CONFIG_UPDATED_EVENT, handleConfigUpdate)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener(CONFIG_UPDATED_EVENT, handleConfigUpdate)
+    }
   }, [])
 
   useEffect(() => {

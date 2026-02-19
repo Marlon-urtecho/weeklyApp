@@ -1,13 +1,18 @@
 import { UsuarioRepository } from '../repositories/usuario.repository'
-import { LoginDTOType, RegisterDTOType } from '../dto/auth.dto'
+import { ForgotPasswordDTOType, LoginDTOType, RegisterDTOType, ResetPasswordDTOType } from '../dto/auth.dto'
 import jwt from 'jsonwebtoken'
 import { AuthResponse, Usuario } from '../models'
+import { prisma } from '../db'
+import bcrypt from 'bcryptjs'
+import { EmailService } from './email.service'
 
 export class AuthService {
   private usuarioRepository: UsuarioRepository
+  private emailService: EmailService
 
   constructor() {
     this.usuarioRepository = new UsuarioRepository()
+    this.emailService = new EmailService()
   }
 
   async login(credentials: LoginDTOType): Promise<AuthResponse> {
@@ -81,6 +86,60 @@ export class AuthService {
       token: this.generateAccessToken(user),
       refresh_token: this.generateRefreshToken(user)
     }
+  }
+
+  async requestPasswordReset(data: ForgotPasswordDTOType): Promise<void> {
+    const user = await this.usuarioRepository.findByUsername(data.username)
+
+    // Evita filtrar existencia de usuarios.
+    if (!user || !user.activo) return
+
+    const code = `${Math.floor(100000 + Math.random() * 900000)}`
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
+
+    await prisma.password_reset_codes.create({
+      data: {
+        id_usuario: Number(user.id_usuario),
+        code,
+        expires_at: expiresAt,
+        used: false
+      }
+    })
+
+    await this.emailService.sendPasswordResetCode(data.email, code, user.username)
+  }
+
+  async resetPassword(data: ResetPasswordDTOType): Promise<void> {
+    const user = await this.usuarioRepository.findByUsername(data.username)
+    if (!user || !user.activo) {
+      throw new Error('Código inválido o vencido')
+    }
+
+    const resetCode = await prisma.password_reset_codes.findFirst({
+      where: {
+        id_usuario: Number(user.id_usuario),
+        code: data.code,
+        used: false,
+        expires_at: { gt: new Date() }
+      },
+      orderBy: { created_at: 'desc' }
+    })
+
+    if (!resetCode) {
+      throw new Error('Código inválido o vencido')
+    }
+
+    const hashed = await bcrypt.hash(data.newPassword, 10)
+    await prisma.$transaction([
+      prisma.usuarios.update({
+        where: { id_usuario: Number(user.id_usuario) },
+        data: { password: hashed }
+      }),
+      prisma.password_reset_codes.updateMany({
+        where: { id_usuario: Number(user.id_usuario), used: false },
+        data: { used: true }
+      })
+    ])
   }
 
   private generateAccessToken(user: Usuario): string {

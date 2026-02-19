@@ -26,6 +26,7 @@ model usuarios {
   pagos                   pagos[]
   movimientos_inventario  movimientos_inventario[]
   creditos_creados        creditos[]      @relation("creditos_creados")
+  password_reset_codes    password_reset_codes[]
   
   @@map("usuarios")
 }
@@ -284,4 +285,18 @@ model pago_detalle_producto {
 
   @@index([id_credito, id_producto])
   @@map("pago_detalle_producto")
+}
+
+model password_reset_codes {
+  id            Int      @id @default(autoincrement()) @map("id")
+  id_usuario    Int      @map("id_usuario")
+  code          String   @map("code")
+  expires_at    DateTime @map("expires_at")
+  used          Boolean  @default(false) @map("used")
+  created_at    DateTime @default(now()) @map("created_at")
+
+  usuarios      usuarios @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@index([id_usuario, code, used])
+  @@map("password_reset_codes")
 }

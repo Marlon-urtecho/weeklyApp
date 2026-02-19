@@ -13,6 +13,7 @@ import { StatsCards } from '@/components/dashboard/StatsCards'
 import { useToast } from '@/contexts/ToastContext'
 import { apiClient } from '@/lib/api/client'
 import { formatCurrency } from '@/lib/utils'
+import { CONFIG_UPDATED_EVENT, getStockLowThreshold, getStoredConfig } from '@/lib/system-config'
 
 interface InventarioItem {
   id_producto: number
@@ -80,6 +81,7 @@ export default function InventarioPage() {
   const [vendedorRutasMap, setVendedorRutasMap] = useState<Map<number, VendedorRutasMapItem>>(new Map())
   const [filtroVendedorDistribucion, setFiltroVendedorDistribucion] = useState('TODOS')
   const [filtroRutaDistribucion, setFiltroRutaDistribucion] = useState('TODAS')
+  const [stockLowThreshold, setStockLowThreshold] = useState(10)
 
   const { showToast } = useToast()
 
@@ -88,8 +90,19 @@ export default function InventarioPage() {
   }, [])
 
   useEffect(() => {
+    const syncConfig = () => {
+      const cfg = getStoredConfig()
+      setStockLowThreshold(getStockLowThreshold(cfg))
+    }
+
+    syncConfig()
+    window.addEventListener(CONFIG_UPDATED_EVENT, syncConfig as EventListener)
+    return () => window.removeEventListener(CONFIG_UPDATED_EVENT, syncConfig as EventListener)
+  }, [])
+
+  useEffect(() => {
     calcularStats()
-  }, [inventario])
+  }, [inventario, stockLowThreshold])
 
   const cargarInventario = async () => {
     try {
@@ -190,7 +203,9 @@ export default function InventarioPage() {
       0
     )
     const productosConStock = inventario.filter((item) => item.bodega.stock_disponible > 0).length
-    const stockBajo = inventario.filter((item) => item.bodega.stock_disponible > 0 && item.bodega.stock_disponible < 10).length
+    const stockBajo = inventario.filter(
+      (item) => item.bodega.stock_disponible > 0 && item.bodega.stock_disponible < stockLowThreshold
+    ).length
     const agotados = inventario.filter((item) => item.bodega.stock_disponible === 0).length
 
     setStats({
@@ -428,7 +443,7 @@ export default function InventarioPage() {
       color: 'purple' as const
     },
     {
-      title: 'Stock Bajo',
+      title: `Stock Bajo (< ${stockLowThreshold})`,
       value: stats.stockBajo,
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -494,7 +509,7 @@ export default function InventarioPage() {
       cell: (item: InventarioItem) => {
         const stock = item.bodega.stock_disponible
         if (stock === 0) return <Badge variant="error">Agotado</Badge>
-        if (stock < 10) return <Badge variant="warning">Stock Bajo</Badge>
+        if (stock < stockLowThreshold) return <Badge variant="warning">Stock Bajo</Badge>
         return <Badge variant="success">Normal</Badge>
       }
     },

@@ -8,11 +8,21 @@ import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useRouter } from 'next/navigation'
+import { apiClient } from '@/lib/api/client'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('demo1234')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingRecovery, setLoadingRecovery] = useState(false)
+  const [showRecovery, setShowRecovery] = useState(false)
+  const [recoveryStep, setRecoveryStep] = useState<'request' | 'verify'>('request')
+  const [recoveryData, setRecoveryData] = useState({
+    username: '',
+    email: '',
+    code: '',
+    newPassword: ''
+  })
   const [showSplash, setShowSplash] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -77,6 +87,44 @@ export default function LoginPage() {
     }
     
     setLoading(false)
+  }
+
+  const handleRequestRecoveryCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoadingRecovery(true)
+    try {
+      await apiClient.post('/auth/forgot-password', {
+        username: recoveryData.username,
+        email: recoveryData.email
+      })
+      showToast('Si el usuario existe, enviamos el código al correo indicado', 'success')
+      setRecoveryStep('verify')
+    } catch (error: any) {
+      showToast(error.message || 'No se pudo enviar el código', 'error')
+    } finally {
+      setLoadingRecovery(false)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoadingRecovery(true)
+    try {
+      await apiClient.post('/auth/reset-password', {
+        username: recoveryData.username,
+        code: recoveryData.code,
+        newPassword: recoveryData.newPassword
+      })
+
+      showToast('Contraseña actualizada. Ya puedes iniciar sesión', 'success')
+      setShowRecovery(false)
+      setRecoveryStep('request')
+      setRecoveryData({ username: '', email: '', code: '', newPassword: '' })
+    } catch (error: any) {
+      showToast(error.message || 'No se pudo restablecer la contraseña', 'error')
+    } finally {
+      setLoadingRecovery(false)
+    }
   }
 
   // Splash Screen Dark Mode
@@ -237,7 +285,8 @@ export default function LoginPage() {
             </div>
 
             {/* Formulario dark */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            {!showRecovery ? (
+              <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-300">
                   Usuario
@@ -275,11 +324,76 @@ export default function LoginPage() {
               >
                 Iniciar Sesión
               </Button>
-            </form>
+              </form>
+            ) : recoveryStep === 'request' ? (
+              <form onSubmit={handleRequestRecoveryCode} className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-200">Recuperar contraseña</h3>
+                <Input
+                  label="Usuario"
+                  value={recoveryData.username}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setRecoveryData((prev) => ({ ...prev, username: e.target.value }))
+                  }
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-100"
+                  required
+                />
+                <Input
+                  label="Correo para recuperación"
+                  type="email"
+                  value={recoveryData.email}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setRecoveryData((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-100"
+                  required
+                />
+                <Button type="submit" variant="primary" loading={loadingRecovery} className="w-full">
+                  Enviar código
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-200">Ingresa el código recibido</h3>
+                <Input
+                  label="Código (6 dígitos)"
+                  value={recoveryData.code}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setRecoveryData((prev) => ({ ...prev, code: e.target.value }))
+                  }
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-100"
+                  required
+                />
+                <Input
+                  label="Nueva contraseña"
+                  type="password"
+                  value={recoveryData.newPassword}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setRecoveryData((prev) => ({ ...prev, newPassword: e.target.value }))
+                  }
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-100"
+                  required
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Button type="submit" variant="primary" loading={loadingRecovery}>
+                    Restablecer
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={() => setRecoveryStep('request')}>
+                    Reenviar código
+                  </Button>
+                </div>
+              </form>
+            )}
 
             {/* Enlaces dark */}
             <div className="mt-6 flex items-center justify-between text-sm">
-              <button className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRecovery((prev) => !prev)
+                  setRecoveryStep('request')
+                }}
+                className="text-cyan-400 hover:text-cyan-300 font-medium transition"
+              >
                 ¿Olvidaste tu contraseña?
               </button>
               <button className="text-gray-400 hover:text-gray-300 transition">
