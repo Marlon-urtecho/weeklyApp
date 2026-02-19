@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: 'es-GT',
     icons: [
       {
-        src: '/logoAr.jpeg',
+        src: '/LogoAR.jpeg',
         sizes: '192x192',
         type: 'image/jpeg',
         purpose: 'any'
@@ -22,7 +22,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/logoAr.jpeg',
         sizes: '512x512',
         type: 'image/jpeg',
-        purpose: 'any maskable'
+        purpose: 'maskable'
       }
     ]
   }

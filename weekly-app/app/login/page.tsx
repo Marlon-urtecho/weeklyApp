@@ -168,7 +168,7 @@ export default function LoginPage() {
               <div className="relative w-32 h-32 mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-3xl animate-spin-slow opacity-20"></div>
                 <div className="relative w-full h-full bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-cyan-500/30 flex items-center justify-center shadow-2xl">
-                  <span className="text-6xl animate-float">💵</span>
+                  <img src="/logoBlack.jpeg" alt="Logo Weekly" className="w-16 h-16" />
                 </div>
               </div>
             </div>
@@ -182,32 +182,8 @@ export default function LoginPage() {
             
             {/* Subtítulo */}
             <p className="text-2xl md:text-3xl text-gray-400 mb-12 animate-fade-in-up">
-              Potencia tu negocio de préstamos
+              Potencia tu negocio
             </p>
-            
-            {/* Grid de características dark */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-12">
-              {[
-                { icon: '⚡', text: 'Escala rápido', desc: 'Automatiza procesos' },
-                { icon: '🔒', text: 'Seguridad total', desc: 'Protección bancaria' },
-                { icon: '📊', text: 'Analytics', desc: 'Decisiones en tiempo real' }
-              ].map((item, index) => (
-                <div 
-                  key={index}
-                  className="group relative animate-fade-in-up"
-                  style={{ animationDelay: `${index * 150}ms` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
-                  <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 group-hover:border-cyan-500/50 transition-all">
-                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
-                      {item.icon}
-                    </div>
-                    <p className="text-lg font-semibold text-white mb-1">{item.text}</p>
-                    <p className="text-sm text-gray-400">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
             
             {/* Barra de carga mejorada */}
             <div className="w-80 mx-auto space-y-4">
@@ -274,14 +250,14 @@ export default function LoginPage() {
                 <div className="relative w-20 h-20 mx-auto mb-4">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl animate-spin-slow opacity-20"></div>
                   <div className="relative w-full h-full bg-gray-800 rounded-2xl border border-cyan-500/30 flex items-center justify-center">
-                    <span className="text-4xl">💵</span>
+                    <img src="/logoAR.jpeg" alt="Logo Weekly" className="w-10 h-10" />
                   </div>
                 </div>
               </div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 WEEKLY
               </h1>
-              <p className="text-gray-400 mt-1">Gestiona tu Negocio</p>
+              <p className="text-gray-400 mt-1">Gestion AR Distribuidora</p>
             </div>
 
             {/* Formulario dark */}
