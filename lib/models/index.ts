@@ -460,7 +460,7 @@ import type {
   creditos as PrismaCredito,
   credito_detalle as PrismaCreditoDetalle,
   pagos as PrismaPago,
-} from "@prisma/client";
+} from "../../prisma/generated/prisma/client";
 
 export type {
   PrismaUsuario,
