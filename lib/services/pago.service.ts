@@ -1,5 +1,5 @@
 import { PagoRepository } from '../repositories/pago.repository'
-import { pagos as Pago } from '@prisma/client'
+import { pagos as Pago } from '../../prisma/generated/prisma/client'
 import { CreditoRepository } from '../repositories/credito.repository'
 import { UsuarioRepository } from '../repositories/usuario.repository'
 import { CreatePagoDTOType } from '../dto/pagos.dto'

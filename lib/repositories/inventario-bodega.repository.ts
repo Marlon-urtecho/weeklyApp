@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { inventario_bodega as InventarioBodega, Prisma } from '@prisma/client'
+import { inventario_bodega as InventarioBodega, Prisma } from '../../prisma/generated/prisma/client'
 
 type InventarioCompleto = Prisma.inventario_bodegaGetPayload<{
   include: {

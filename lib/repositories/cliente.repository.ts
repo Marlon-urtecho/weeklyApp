@@ -1,7 +1,7 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { clientes as Cliente } from '@prisma/client'
-import type { Prisma } from '@prisma/client'
+import { clientes as Cliente } from '../../prisma/generated/prisma/client'
+import type { Prisma } from '../../prisma/generated/prisma/client'
 
 type ClienteConCreditos = Prisma.clientesGetPayload<{
   include: {

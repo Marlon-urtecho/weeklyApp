@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { roles as Rol } from '@prisma/client'
+import { roles as Rol } from '../../prisma/generated/prisma/client'
 
 export class RolRepository extends BaseRepository<Rol> {
   constructor() {
