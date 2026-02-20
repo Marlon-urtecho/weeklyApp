@@ -1,6 +1,7 @@
 // GENERATOR: Genera el cliente de Prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./generated/prisma"
 }
 
 // DATASOURCE: Conexión a PostgreSQL
