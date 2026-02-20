@@ -150,7 +150,7 @@ export class AuthService {
     }
 
     return jwt.sign(payload, this.getAccessTokenSecret(), {
-      expiresIn: process.env.JWT_EXPIRES_IN || '8h'
+      expiresIn: (process.env.JWT_EXPIRES_IN || '8h') as any
     })
   }
 
@@ -162,7 +162,7 @@ export class AuthService {
     }
 
     return jwt.sign(payload, this.getRefreshTokenSecret(), {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '30d') as any
     })
   }
 
