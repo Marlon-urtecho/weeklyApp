@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { ruta_vendedor as RutaVendedor } from '@prisma/client'
+import { ruta_vendedor as RutaVendedor } from '../../prisma/generated/prisma/client'
 
 export class RutaVendedorRepository extends BaseRepository<RutaVendedor> {
   constructor() {

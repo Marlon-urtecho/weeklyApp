@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import type { categorias as CategoriaPrisma } from '@prisma/client'
+import type { categorias as CategoriaPrisma } from '../../prisma/generated/prisma/client'
 
 // Definir el tipo para crear una categoría
 export type CreateCategoriaDTO = {

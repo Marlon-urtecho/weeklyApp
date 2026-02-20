@@ -1,6 +1,22 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { inventario_bodega as InventarioBodega } from '@prisma/client'
+import { inventario_bodega as InventarioBodega, Prisma } from '../../prisma/generated/prisma/client'
+
+type InventarioCompleto = Prisma.inventario_bodegaGetPayload<{
+  include: {
+    productos: {
+      include: {
+        categorias: true
+      }
+    }
+  }
+}>
+
+type InventarioConProductos = Prisma.inventario_bodegaGetPayload<{
+  include: {
+    productos: true
+  }
+}>
 
 export class InventarioBodegaRepository extends BaseRepository<InventarioBodega> {
   constructor() {
@@ -9,7 +25,7 @@ export class InventarioBodegaRepository extends BaseRepository<InventarioBodega>
     this.idField = 'id_inventario' 
   }
 
-  async findAll(): Promise<InventarioBodega[]> {
+  async findAll(): Promise<InventarioCompleto[]> {
     return this.model.findMany({
       include: {
         productos: {
@@ -24,7 +40,7 @@ export class InventarioBodegaRepository extends BaseRepository<InventarioBodega>
     })
   }
 
-  async findByProductoId(id_producto: number): Promise<InventarioBodega | null> {
+  async findByProductoId(id_producto: number): Promise<InventarioConProductos | null> {
     return this.model.findUnique({
       where: { id_producto },
       include: {
@@ -33,7 +49,7 @@ export class InventarioBodegaRepository extends BaseRepository<InventarioBodega>
     })
   }
 
-  async getStockBajo(limite: number = 10): Promise<InventarioBodega[]> {
+  async getStockBajo(limite: number = 10): Promise<InventarioConProductos[]> {
     return this.model.findMany({
       where: {
         stock_disponible: {
@@ -75,7 +91,7 @@ export class InventarioBodegaRepository extends BaseRepository<InventarioBodega>
   }
 
  
-  async findById(id_inventario: number): Promise<InventarioBodega | null> {
+  async findById(id_inventario: number): Promise<InventarioConProductos | null> {
     return this.model.findUnique({
       where: { id_inventario },
       include: {

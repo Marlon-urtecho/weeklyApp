@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
       if (!parsed.success) {
         const message =
           parsed.error?.issues?.[0]?.message ||
-          parsed.error?.errors?.[0]?.message ||
           'Refresh token inválido'
         return NextResponse.json({ error: message }, { status: 400 })
       }

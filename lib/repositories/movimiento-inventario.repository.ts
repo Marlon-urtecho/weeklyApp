@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { movimientos_inventario as MovimientoInventario } from '@prisma/client'
+import { movimientos_inventario as MovimientoInventario } from '../../prisma/generated/prisma/client'
 
 export class MovimientoInventarioRepository extends BaseRepository<MovimientoInventario> {
   constructor() {
