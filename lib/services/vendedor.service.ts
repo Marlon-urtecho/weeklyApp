@@ -66,9 +66,7 @@ export class VendedorService {
 
     const rutasActivas = await this.rutaVendedorRepository.getRutasByVendedor(id_vendedor)
     const yaAsignada = rutasActivas.some((rv: any) => Number(rv.id_ruta) === Number(id_ruta))
-    if (!yaAsignada && rutasActivas.length >= 5) {
-      throw new Error('Un vendedor no puede tener más de 5 rutas activas')
-    }
+    // Límite de rutas eliminado
 
     return this.rutaVendedorRepository.asignarRuta(id_ruta, id_vendedor)
   }

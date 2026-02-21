@@ -9,6 +9,7 @@ import Card from '../../components/ui/Card'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api/client'
+import { getStoredConfig } from '@/lib/system-config'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('demo1234')
@@ -35,6 +36,15 @@ export default function LoginPage() {
       router.replace('/dashboard')
     }
   }, [authLoading, isAuthenticated, router])
+
+  useEffect(() => {
+    const config = getStoredConfig()
+    const configEmail = String(config?.general?.email || '').trim()
+    setRecoveryData((prev) => ({
+      ...prev,
+      email: configEmail
+    }))
+  }, [])
 
   // Splash screen de 10 segundos con barra de progreso animada
   useEffect(() => {
@@ -93,6 +103,9 @@ export default function LoginPage() {
     e.preventDefault()
     setLoadingRecovery(true)
     try {
+      if (!recoveryData.email) {
+        throw new Error('Configura un correo de recuperacion en Configuracion > General')
+      }
       await apiClient.post('/auth/forgot-password', {
         username: recoveryData.username,
         email: recoveryData.email
@@ -314,7 +327,7 @@ export default function LoginPage() {
                   required
                 />
                 <Input
-                  label="Correo para recuperación"
+                  label="Correo de recuperación (configurado)"
                   type="email"
                   value={recoveryData.email}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -322,6 +335,7 @@ export default function LoginPage() {
                   }
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-100"
                   required
+                  readOnly
                 />
                 <Button type="submit" variant="primary" loading={loadingRecovery} className="w-full">
                   Enviar código

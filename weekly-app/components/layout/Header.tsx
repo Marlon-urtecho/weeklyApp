@@ -35,6 +35,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const [notifications, setNotifications] = useState<HeaderNotification[]>([])
   const [loadingNotifications, setLoadingNotifications] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   const getRelativeTime = (date: Date): string => {
     const diffMs = Date.now() - date.getTime()
@@ -150,6 +151,17 @@ export default function Header({ onMenuClick }: HeaderProps) {
   }, [])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    const storedTheme = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches
+    const nextTheme = storedTheme === 'light' || storedTheme === 'dark'
+      ? storedTheme
+      : (prefersDark === false ? 'light' : 'dark')
+    setTheme(nextTheme)
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+  }, [])
+
+  useEffect(() => {
     if (showNotifications) {
       setUnreadCount(0)
     }
@@ -160,12 +172,21 @@ export default function Header({ onMenuClick }: HeaderProps) {
     router.push('/login')
   }
 
+  const handleToggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(nextTheme)
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+      localStorage.setItem('theme', nextTheme)
+    }
+  }
+
   return (
-    <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 w-full">
+      <div className="px-2 sm:px-4 lg:px-8">
+        <div className="flex flex-wrap items-center justify-between h-16 gap-y-2">
           {/* Left side */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-1 min-w-0">
             <button
               onClick={onMenuClick}
               className="lg:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -174,14 +195,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            
             {/* Search */}
-            <div className="hidden md:block ml-4">
+            <div className="hidden md:block ml-2 sm:ml-4 min-w-0 max-w-xs w-full">
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Buscar en el sistema..."
-                  className="w-80 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+                  className="w-full min-w-0 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
                 />
                 <div className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -193,12 +213,29 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
 
           {/* Right side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+            {/* Theme toggle */}
+            <button
+              onClick={handleToggleTheme}
+              className="relative p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              aria-label="Cambiar tema"
+            >
+              {theme === 'dark' ? (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364-1.414 1.414M7.05 16.95l-1.414 1.414m0-12.728 1.414 1.414m12.728 12.728-1.414-1.414M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+                </svg>
+              )}
+            </button>
             {/* Notifications */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                aria-label="Ver notificaciones"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -212,11 +249,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
               {/* Notifications dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 border border-gray-200 dark:border-gray-700">
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 border border-gray-200 dark:border-gray-700 z-50">
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">Notificaciones</p>
                   </div>
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-80 overflow-y-auto">
                     {loadingNotifications && (
                       <div className="px-4 py-3">
                         <p className="text-sm text-gray-500 dark:text-gray-400">Cargando notificaciones...</p>
@@ -234,8 +271,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
                           levelStyles[notification.level]
                         )}
                       >
-                        <p className="text-sm text-gray-900 dark:text-white font-medium">{notification.title}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{notification.message}</p>
+                        <p className="text-sm text-gray-900 dark:text-white font-medium truncate">{notification.title}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 truncate">{notification.message}</p>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{notification.time}</p>
                       </button>
                     ))}
@@ -259,7 +296,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-3 focus:outline-none p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex items-center space-x-2 sm:space-x-3 focus:outline-none p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Ver perfil"
               >
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur opacity-50"></div>
@@ -267,9 +305,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     {user?.nombre?.charAt(0) || 'U'}
                   </div>
                 </div>
-                <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.nombre || 'Usuario'}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{user?.username || 'usuario@demo.com'}</p>
+                <div className="hidden md:block text-left truncate max-w-[120px]">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user?.nombre || 'Usuario'}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.username || 'usuario@demo.com'}</p>
                 </div>
                 <svg className={cn(
                   "h-4 w-4 text-gray-400 transition-transform duration-200",
@@ -281,7 +319,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
               {/* Profile menu */}
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-1 border border-gray-200 dark:border-gray-700">
+                <div className="absolute right-0 mt-2 w-44 sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-1 border border-gray-200 dark:border-gray-700 z-50">
                   <a
                     href="/dashboard/perfil"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

@@ -1,15 +1,20 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 249, 250, 251;
+  --scrollbar-thumb: #9ca3af;
+  --scrollbar-track: #e5e7eb;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 17, 24, 39;
-  }
+html.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 17, 24, 39;
+  --scrollbar-thumb: #4b5563;
+  --scrollbar-track: #1f2937;
+  color-scheme: dark;
 }
 
 body {
@@ -54,7 +59,7 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
@@ -63,11 +68,11 @@ body {
 }
 
 .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: var(--scrollbar-thumb);
 }
 
 .scrollbar-track-gray-800::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: var(--scrollbar-track);
 }
 
 .hover\:scrollbar-thumb-gray-500:hover::-webkit-scrollbar-thumb {
@@ -77,5 +82,5 @@ body {
 /* Para Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #4b5563 #1f2937;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
