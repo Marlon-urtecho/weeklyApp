@@ -22,6 +22,7 @@ export default function InstallAppCard() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [installing, setInstalling] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   useEffect(() => {
     setIsInstalled(isInStandaloneMode())
@@ -91,8 +92,23 @@ export default function InstallAppCard() {
       )}
 
       {!isInstalled && !canInstall && !isIos() && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-          Si no aparece el botón de instalación, abre esta app desde `https` o `localhost` y usa un navegador compatible.
+        <div className="space-y-3">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            Si no aparece el botón de instalación, abre esta app desde `https` o `localhost` y usa Chrome o Edge.
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setShowHelp((prev) => !prev)}>
+              {showHelp ? 'Ocultar ayuda' : 'Cómo instalar'}
+            </Button>
+          </div>
+          {showHelp && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 space-y-1">
+              <p>1. Abre la app en Chrome o Edge.</p>
+              <p>2. Pulsa el icono de instalar en la barra de direcciones.</p>
+              <p>3. Si no aparece, abre el menú del navegador y elige "Instalar aplicación".</p>
+              <p>4. En iOS: Share {'>'} Add to Home Screen.</p>
+            </div>
+          )}
         </div>
       )}
     </Card>

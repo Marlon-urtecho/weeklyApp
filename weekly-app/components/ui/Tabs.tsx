@@ -30,7 +30,7 @@ export const Tabs: React.FC<TabsProps> = ({
 
   const variants = {
     underline: {
-      container: 'border-b border-gray-200 dark:border-gray-700',
+      container: 'border-b border-gray-200 dark:border-gray-700 overflow-x-auto',
       tab: (isActive: boolean) => cn(
         'px-4 py-2 text-sm font-medium transition-colors relative',
         isActive
@@ -39,7 +39,7 @@ export const Tabs: React.FC<TabsProps> = ({
       )
     },
     pills: {
-      container: 'flex space-x-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg',
+      container: 'overflow-x-auto p-1 bg-gray-100 dark:bg-gray-800 rounded-lg',
       tab: (isActive: boolean) => cn(
         'px-4 py-2 text-sm font-medium rounded-lg transition-all',
         isActive
@@ -48,7 +48,7 @@ export const Tabs: React.FC<TabsProps> = ({
       )
     },
     buttons: {
-      container: 'flex space-x-2',
+      container: 'overflow-x-auto',
       tab: (isActive: boolean) => cn(
         'px-4 py-2 text-sm font-medium rounded-lg transition-all border',
         isActive
@@ -66,14 +66,14 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div className={className}>
       <div className={variants[variant].container}>
-        <div className="flex">
+        <div className="flex w-max min-w-full gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab.id)}
               className={cn(
                 variants[variant].tab(activeTab === tab.id),
-                'flex items-center space-x-2'
+                'flex items-center space-x-2 whitespace-nowrap'
               )}
             >
               {tab.icon && <span>{tab.icon}</span>}

@@ -27,7 +27,7 @@ async function main() {
   // ============================================
   // 1. CREAR ROLES BÁSICOS
   // ============================================
-  console.log('📋 Creando roles...')
+  console.log(' Creando roles...')
   const roles = await prisma.roles.createMany({
     data: [
       { nombre_rol: 'ADMIN' },
@@ -38,8 +38,55 @@ async function main() {
   })
   console.log(` ${roles.count} roles creados/verificados`)
 
+  console.log(' Creando tipos de movimiento base...')
+
+  const tiposMovimientoBase = [
+    {
+      nombre_tipo: 'ENTRADA',
+      factor: 1,
+      descripcion: 'Entrada general a inventario (compras, ingresos iniciales, devoluciones)'
+    },
+    {
+      nombre_tipo: 'SALIDA',
+      factor: -1,
+      descripcion: 'Salida general de inventario (ventas, asignaciones, consumos)'
+    },
+    {
+      nombre_tipo: 'AJUSTE',
+      factor: 0,
+      descripcion: 'Ajuste administrativo de inventario'
+    },
+    {
+      nombre_tipo: 'TRANSFERENCIA',
+      factor: 0,
+      descripcion: 'Transferencia entre ubicaciones o responsables'
+    },
+    {
+      nombre_tipo: 'DEVOLUCION',
+      factor: 1,
+      descripcion: 'Devolución de producto al inventario'
+    }
+  ] as const
+
+  for (const tipo of tiposMovimientoBase) {
+    await prisma.tipo_movimiento.upsert({
+      where: { nombre_tipo: tipo.nombre_tipo },
+      update: {
+        factor: tipo.factor,
+        descripcion: tipo.descripcion
+      },
+      create: {
+        nombre_tipo: tipo.nombre_tipo,
+        factor: tipo.factor,
+        descripcion: tipo.descripcion
+      }
+    })
+  }
+
+  console.log(` ${tiposMovimientoBase.length} tipos base creados/verificados`)
+
   // ============================================
-  // 2. CREAR USUARIO ADMIN
+  // 3. CREAR USUARIO ADMIN
   // ============================================
   console.log('👤 Creando usuario admin...')
   
@@ -62,7 +109,7 @@ async function main() {
   console.log(` Usuario admin creado: ${admin.username}`)
 
   // ============================================
-  // 3. ASIGNAR ROL ADMIN AL USUARIO
+  // 4. ASIGNAR ROL ADMIN AL USUARIO
   // ============================================
   console.log(' Asignando rol ADMIN...')
   
@@ -88,14 +135,16 @@ async function main() {
   }
 
   // ============================================
-  // 4. VERIFICACIÓN FINAL
+  // 5. VERIFICACIÓN FINAL
   // ============================================
   const totalUsuarios = await prisma.usuarios.count()
   const totalRoles = await prisma.roles.count()
+  const totalTiposMovimiento = await prisma.tipo_movimiento.count()
   
   console.log('\n RESUMEN:')
   console.log(` Usuarios totales: ${totalUsuarios}`)
   console.log(` Roles totales: ${totalRoles}`)
+  console.log(` Tipos de movimiento totales: ${totalTiposMovimiento}`)
   console.log('\n Credenciales admin:')
   console.log(`   Usuario: ${adminUser}`)
   console.log('   Contraseña: [SEED_ADMIN_PASSWORD]')

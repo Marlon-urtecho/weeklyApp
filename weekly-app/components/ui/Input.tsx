@@ -29,7 +29,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -43,7 +43,7 @@ export const Input: React.FC<InputProps> = ({
         <input
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
           className={cn(
-            'w-full px-4 py-2.5 bg-white dark:bg-gray-800 border rounded-lg transition-all duration-200',
+            'w-full px-4 py-2.5 min-h-[44px] text-base sm:text-sm bg-white dark:bg-gray-800 border rounded-lg transition-all duration-200',
             'focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500',
             'placeholder:text-gray-400 dark:placeholder:text-gray-500',
             error
