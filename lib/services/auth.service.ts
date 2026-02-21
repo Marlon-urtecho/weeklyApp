@@ -1,12 +1,38 @@
 import { UsuarioRepository } from '../repositories/usuario.repository'
 import { ForgotPasswordDTOType, LoginDTOType, RegisterDTOType, ResetPasswordDTOType } from '../dto/auth.dto'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 import { AuthResponse, Usuario } from '../models'
 import { prisma } from '../db'
 import bcrypt from 'bcryptjs'
 import { EmailService } from './email.service'
 
 export class AuthService {
+    async login(credentials: LoginDTOType): Promise<AuthResponse> {
+      // 1. Buscar usuario
+      const user = await this.usuarioRepository.findByUsername(credentials.username)
+    
+      if (!user) {
+        throw new Error('Usuario no encontrado')
+      }
+      if (!user.activo) {
+        throw new Error('Usuario inactivo')
+      }
+      // 2. Verificar contraseña
+      const isValid = await this.usuarioRepository.verifyPassword(user, credentials.password)
+      if (!isValid) {
+        throw new Error('Contraseña incorrecta')
+      }
+      // 3. Generar token JWT
+      const token = this.generateAccessToken(user)
+      const refreshToken = this.generateRefreshToken(user)
+      // 4. Retornar sin password
+      const { password, ...userWithoutPassword } = user
+      return {
+        user: userWithoutPassword,
+        token,
+        refresh_token: refreshToken
+      }
+    }
   private usuarioRepository: UsuarioRepository
   private emailService: EmailService
 
@@ -118,9 +144,11 @@ export class AuthService {
       roles: user.roles?.map(r => r.nombre_rol) || []
     }
 
-    return jwt.sign(payload, this.getAccessTokenSecret(), {
-      expiresIn: process.env.JWT_EXPIRES_IN || '8h'
-    })
+    return jwt.sign(
+      payload,
+      this.getAccessTokenSecret(),
+      { expiresIn: process.env.JWT_EXPIRES_IN || '8h' } as SignOptions
+    )
   }
 
   private generateRefreshToken(user: Usuario): string {
@@ -130,9 +158,11 @@ export class AuthService {
       type: 'refresh'
     }
 
-    return jwt.sign(payload, this.getRefreshTokenSecret(), {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
-    })
+    return jwt.sign(
+      payload,
+      this.getRefreshTokenSecret(),
+      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d' } as SignOptions
+    )
   }
 
   verifyToken(token: string) {
