@@ -3,6 +3,7 @@ import { MovimientoInventarioRepository } from '../repositories/movimiento-inven
 import { TipoMovimientoRepository } from '../repositories/tipo-movimiento.repository'
 import { UpdateInventarioBodegaDTOType } from '../dto/inventario.dto'
 import prisma from '../db'
+import { ensureTipoMovimientoBase } from './tipo-movimiento-base.service'
 
 export class InventarioBodegaService {
   private inventarioBodegaRepository: InventarioBodegaRepository
@@ -24,11 +25,10 @@ export class InventarioBodegaService {
   }
 
   async entrada(id_producto: number, cantidad: number, id_usuario: number, observacion?: string) {
-    return await prisma.$transaction(async (tx) => {
-      // Obtener tipo movimiento entrada
-      const tipoEntrada = await this.tipoMovimientoRepository.findByNombre('ENTRADA')
-      if (!tipoEntrada) throw new Error('Tipo de movimiento no configurado')
+    const tipoEntrada = await ensureTipoMovimientoBase(prisma, 'ENTRADA')
+    if (!tipoEntrada) throw new Error('No se pudo garantizar tipo ENTRADA')
 
+    return await prisma.$transaction(async (tx) => {
       // Actualizar stock
       const inventario = await this.inventarioBodegaRepository.aumentarStock(id_producto, cantidad)
 
@@ -48,16 +48,15 @@ export class InventarioBodegaService {
   }
 
   async salida(id_producto: number, cantidad: number, destino: string, id_usuario: number, observacion?: string) {
+    const tipoSalida = await ensureTipoMovimientoBase(prisma, 'SALIDA')
+    if (!tipoSalida) throw new Error('No se pudo garantizar tipo SALIDA')
+
     return await prisma.$transaction(async (tx) => {
       // Validar stock
       const inventario = await this.inventarioBodegaRepository.findByProductoId(id_producto)
       if (!inventario || inventario.stock_disponible < cantidad) {
         throw new Error('Stock insuficiente en bodega')
       }
-
-      // Obtener tipo movimiento salida
-      const tipoSalida = await this.tipoMovimientoRepository.findByNombre('SALIDA')
-      if (!tipoSalida) throw new Error('Tipo de movimiento no configurado')
 
       // Actualizar stock
       const inventarioActualizado = await this.inventarioBodegaRepository.disminuirStock(id_producto, cantidad)

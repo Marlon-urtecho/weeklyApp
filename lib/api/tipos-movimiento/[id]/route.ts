@@ -46,7 +46,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     return NextResponse.json(tipo)
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
+      return NextResponse.json({ error: error.issues?.[0]?.message || 'Datos inválidos' }, { status: 400 })
     }
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

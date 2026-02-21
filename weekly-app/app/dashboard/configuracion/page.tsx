@@ -228,9 +228,9 @@ export default function ConfiguracionPage() {
                 <Input label="Email" type="email" value={generalConfig.email} onChange={(e) => setGeneralConfig({ ...generalConfig, email: e.target.value })} />
                 <Input label="Sitio Web" value={generalConfig.sitioWeb} onChange={(e) => setGeneralConfig({ ...generalConfig, sitioWeb: e.target.value })} />
               </div>
-              <div className="flex gap-3 pt-4">
-                <Button onClick={() => handleSave('general')} loading={savingSection === 'general'}>Guardar Cambios</Button>
-                <Button variant="secondary" onClick={handleResetAll}>Restablecer</Button>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button className="w-full sm:w-auto" onClick={() => handleSave('general')} loading={savingSection === 'general'}>Guardar Cambios</Button>
+                <Button className="w-full sm:w-auto" variant="secondary" onClick={handleResetAll}>Restablecer</Button>
               </div>
             </Card>
           </TabPanel>
@@ -250,7 +250,7 @@ export default function ConfiguracionPage() {
                   <select
                     value={inventarioConfig.controlLotes}
                     onChange={(e) => setInventarioConfig({ ...inventarioConfig, controlLotes: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+                    className="w-full px-3 py-2.5 min-h-[44px] text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                   >
                     <option value="true">Sí</option>
                     <option value="false">No</option>
@@ -261,16 +261,16 @@ export default function ConfiguracionPage() {
                   <select
                     value={inventarioConfig.notificarStockBajo}
                     onChange={(e) => setInventarioConfig({ ...inventarioConfig, notificarStockBajo: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+                    className="w-full px-3 py-2.5 min-h-[44px] text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                   >
                     <option value="true">Sí</option>
                     <option value="false">No</option>
                   </select>
                 </div>
               </div>
-              <div className="flex gap-3 pt-4">
-                <Button onClick={() => handleSave('inventario')} loading={savingSection === 'inventario'}>Guardar Cambios</Button>
-                <Button variant="secondary" onClick={handleResetAll}>Restablecer</Button>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button className="w-full sm:w-auto" onClick={() => handleSave('inventario')} loading={savingSection === 'inventario'}>Guardar Cambios</Button>
+                <Button className="w-full sm:w-auto" variant="secondary" onClick={handleResetAll}>Restablecer</Button>
               </div>
             </Card>
           </TabPanel>
@@ -279,30 +279,30 @@ export default function ConfiguracionPage() {
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Configuración de Notificaciones</h3>
               <div className="space-y-3">
-                <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <label className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Notificaciones por Email</span>
-                  <select value={notificacionesConfig.emailNotificaciones} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, emailNotificaciones: e.target.value })} className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                  <select value={notificacionesConfig.emailNotificaciones} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, emailNotificaciones: e.target.value })} className="w-full sm:w-auto px-3 py-2 min-h-[44px] text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
                     <option value="true">Activado</option>
                     <option value="false">Desactivado</option>
                   </select>
                 </label>
-                <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <label className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Alertas de Créditos Vencidos</span>
-                  <select value={notificacionesConfig.notificarCreditosVencidos} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, notificarCreditosVencidos: e.target.value })} className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                  <select value={notificacionesConfig.notificarCreditosVencidos} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, notificarCreditosVencidos: e.target.value })} className="w-full sm:w-auto px-3 py-2 min-h-[44px] text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
                     <option value="true">Activado</option>
                     <option value="false">Desactivado</option>
                   </select>
                 </label>
-                <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <label className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Alertas de Stock Bajo</span>
-                  <select value={notificacionesConfig.notificarStockBajo} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, notificarStockBajo: e.target.value })} className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                  <select value={notificacionesConfig.notificarStockBajo} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, notificarStockBajo: e.target.value })} className="w-full sm:w-auto px-3 py-2 min-h-[44px] text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
                     <option value="true">Activado</option>
                     <option value="false">Desactivado</option>
                   </select>
                 </label>
-                <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <label className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Notificaciones de Pagos</span>
-                  <select value={notificacionesConfig.notificarPagos} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, notificarPagos: e.target.value })} className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                  <select value={notificacionesConfig.notificarPagos} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, notificarPagos: e.target.value })} className="w-full sm:w-auto px-3 py-2 min-h-[44px] text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
                     <option value="true">Activado</option>
                     <option value="false">Desactivado</option>
                   </select>
@@ -311,9 +311,9 @@ export default function ConfiguracionPage() {
               <div className="pt-4">
                 <Input label="Email para reportes" type="email" value={notificacionesConfig.emailReportes} onChange={(e) => setNotificacionesConfig({ ...notificacionesConfig, emailReportes: e.target.value })} />
               </div>
-              <div className="flex gap-3 pt-4">
-                <Button onClick={() => handleSave('notificaciones')} loading={savingSection === 'notificaciones'}>Guardar Cambios</Button>
-                <Button variant="secondary" onClick={handleResetAll}>Restablecer</Button>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button className="w-full sm:w-auto" onClick={() => handleSave('notificaciones')} loading={savingSection === 'notificaciones'}>Guardar Cambios</Button>
+                <Button className="w-full sm:w-auto" variant="secondary" onClick={handleResetAll}>Restablecer</Button>
               </div>
             </Card>
           </TabPanel>
@@ -331,9 +331,9 @@ export default function ConfiguracionPage() {
                   <strong>Importante:</strong> Estos parámetros quedan guardados y listos para aplicar en futuras políticas del sistema.
                 </p>
               </div>
-              <div className="flex gap-3 pt-4">
-                <Button onClick={() => handleSave('seguridad')} loading={savingSection === 'seguridad'}>Guardar Cambios</Button>
-                <Button variant="secondary" onClick={handleResetAll}>Restablecer</Button>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button className="w-full sm:w-auto" onClick={() => handleSave('seguridad')} loading={savingSection === 'seguridad'}>Guardar Cambios</Button>
+                <Button className="w-full sm:w-auto" variant="secondary" onClick={handleResetAll}>Restablecer</Button>
               </div>
             </Card>
           </TabPanel>
@@ -378,16 +378,16 @@ export default function ConfiguracionPage() {
                 )}
                 <div className="space-y-2">
                   {backups.map((backup) => (
-                    <div key={backup.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div key={backup.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{backup.nombre}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(backup.creadoEn).toLocaleString('es-GT')}
                         </p>
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleRestoreBackup(backup)}>Restaurar</Button>
-                        <Button size="sm" variant="secondary" onClick={() => handleDownloadBackup(backup)}>Descargar</Button>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto">
+                        <Button size="sm" className="w-full" variant="outline" onClick={() => handleRestoreBackup(backup)}>Restaurar</Button>
+                        <Button size="sm" className="w-full" variant="secondary" onClick={() => handleDownloadBackup(backup)}>Descargar</Button>
                       </div>
                     </div>
                   ))}

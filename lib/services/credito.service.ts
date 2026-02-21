@@ -5,6 +5,7 @@ import { VendedorRepository } from '../repositories/vendedor.repository'
 import { ProductoRepository } from '../repositories/producto.respository'
 import { CreateCreditoDTOType, UpdateCreditoDTOType } from '../dto/credito.dto'
 import prisma from '../db'
+import { ensureTipoMovimientoBase } from './tipo-movimiento-base.service'
 
 export class CreditoService {
   private creditoRepository: CreditoRepository
@@ -28,14 +29,8 @@ export class CreditoService {
   ) {
     if (!productos.length) return
 
-    const tipoSalida = await tx.tipo_movimiento.findFirst({
-      where: {
-        nombre_tipo: {
-          equals: 'SALIDA',
-          mode: 'insensitive'
-        }
-      }
-    })
+    const tipoSalida = await ensureTipoMovimientoBase(tx, 'SALIDA')
+    if (!tipoSalida) throw new Error('No se pudo garantizar tipo SALIDA')
 
     for (const item of productos) {
       const inv = await tx.inventario_vendedor.findUnique({
@@ -74,20 +69,18 @@ export class CreditoService {
         })
       }
 
-      if (tipoSalida) {
-        await tx.movimientos_inventario.create({
-          data: {
-            id_producto: item.id_producto,
-            id_tipo_movimiento: tipoSalida.id_tipo_movimiento,
-            cantidad: Number(item.cantidad),
-            origen: `VENDEDOR_${credito.id_vendedor}`,
-            destino: `CLIENTE_${credito.id_cliente}`,
-            referencia: `CREDITO_${credito.id_credito}`,
-            observacion: `Salida por crédito #${credito.id_credito}`,
-            id_usuario_registra: credito.id_usuario_crea
-          }
-        })
-      }
+      await tx.movimientos_inventario.create({
+        data: {
+          id_producto: item.id_producto,
+          id_tipo_movimiento: tipoSalida.id_tipo_movimiento,
+          cantidad: Number(item.cantidad),
+          origen: `VENDEDOR_${credito.id_vendedor}`,
+          destino: `CLIENTE_${credito.id_cliente}`,
+          referencia: `CREDITO_${credito.id_credito}`,
+          observacion: `Salida por crédito #${credito.id_credito}`,
+          id_usuario_registra: credito.id_usuario_crea
+        }
+      })
     }
   }
 
@@ -103,6 +96,14 @@ export class CreditoService {
 
   async create(data: CreateCreditoDTOType) {
     return await prisma.$transaction(async (tx) => {
+      const montoTotal =
+        typeof data.monto_total === 'number'
+          ? data.monto_total
+          : (data.productos || []).reduce(
+              (sum, item) => sum + Number(item.cantidad) * Number(item.precio_unitario),
+              0
+            )
+
       // Validar cliente
       const cliente = await tx.clientes.findUnique({
         where: { id_cliente: data.id_cliente }
@@ -120,11 +121,11 @@ export class CreditoService {
         data: {
         id_cliente: data.id_cliente,
         id_vendedor: data.id_vendedor,
-        monto_total: data.monto_total,
+        monto_total: montoTotal,
         cuota: data.cuota,
         frecuencia_pago: data.frecuencia_pago,
         numero_cuotas: data.numero_cuotas,
-        saldo_pendiente: data.monto_total,
+        saldo_pendiente: montoTotal,
         estado: 'ACTIVO',
         fecha_inicio: data.fecha_inicio,
         fecha_vencimiento: data.fecha_vencimiento,

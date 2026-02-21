@@ -1,5 +1,5 @@
-const CACHE_NAME = 'weekly-app-v1';
-const CORE_ASSETS = ['/', '/dashboard', '/manifest.webmanifest'];
+const CACHE_NAME = 'weekly-app-v2';
+const CORE_ASSETS = ['/', '/dashboard'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -20,6 +20,10 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api')) return;
+  if (url.pathname.endsWith('/manifest.webmanifest')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   if (event.request.mode === 'navigate') {
     event.respondWith(

@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     title: 'Weekly'
   },
   icons: {
-    icon: '/logoAr.jpeg',
-    apple: '/logoAr.jpeg'
+    icon: '/pwa/icon-192.png',
+    apple: '/pwa/icon-192.png'
   }
 }
 

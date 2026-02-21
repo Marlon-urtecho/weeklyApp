@@ -149,9 +149,8 @@ export class AuthService {
       roles: user.roles?.map(r => r.nombre_rol) || []
     }
 
-    return jwt.sign(payload, this.getAccessTokenSecret(), {
-      expiresIn: process.env.JWT_EXPIRES_IN || '8h'
-    })
+    const expiresIn = (process.env.JWT_EXPIRES_IN || '8h') as jwt.SignOptions['expiresIn']
+    return jwt.sign(payload, this.getAccessTokenSecret(), { expiresIn })
   }
 
   private generateRefreshToken(user: Usuario): string {
@@ -161,9 +160,8 @@ export class AuthService {
       type: 'refresh'
     }
 
-    return jwt.sign(payload, this.getRefreshTokenSecret(), {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
-    })
+    const expiresIn = (process.env.JWT_REFRESH_EXPIRES_IN || '30d') as jwt.SignOptions['expiresIn']
+    return jwt.sign(payload, this.getRefreshTokenSecret(), { expiresIn })
   }
 
   verifyToken(token: string) {

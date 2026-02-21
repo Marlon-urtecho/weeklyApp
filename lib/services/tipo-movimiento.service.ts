@@ -3,6 +3,8 @@ import {
   CreateTipoMovimientoDTOType,
   UpdateTipoMovimientoDTOType
 } from '../dto/tipo-movimiento.dto'
+import { prisma } from '../db'
+import { ensureTiposMovimientoBase } from './tipo-movimiento-base.service'
 
 const TIPOS_BASE = ['ENTRADA', 'SALIDA', 'AJUSTE', 'TRANSFERENCIA', 'DEVOLUCION', 'DEVOLUCIÓN']
 
@@ -14,6 +16,8 @@ export class TipoMovimientoService {
   }
 
   async getAll(includeInactivos: boolean = true) {
+    await ensureTiposMovimientoBase(prisma)
+
     const tipos = await this.tipoMovimientoRepository.findAll()
 
     const mapped = tipos.map((tipo: any) => ({
@@ -36,9 +40,8 @@ export class TipoMovimientoService {
   }
 
   async create(data: CreateTipoMovimientoDTOType) {
-    const normalizedName = data.nombre_tipo.trim().toUpperCase()
-    const existente = await this.tipoMovimientoRepository.findByNombre(normalizedName)
-
+    const normalizedName = this.normalizarNombre(data.nombre_tipo)
+    const existente = await this.buscarDuplicadoSemantico(normalizedName)
     if (existente) throw new Error('Ya existe un tipo de movimiento con ese nombre')
 
     return this.tipoMovimientoRepository.create({
@@ -53,10 +56,10 @@ export class TipoMovimientoService {
     if (!tipo) throw new Error('Tipo de movimiento no encontrado')
 
     const isBase = this.esTipoBase((tipo as any).nombre_tipo)
-    const nextName = data.nombre_tipo?.trim().toUpperCase()
+    const nextName = data.nombre_tipo ? this.normalizarNombre(data.nombre_tipo) : undefined
 
     if (nextName && nextName !== (tipo as any).nombre_tipo) {
-      const existente = await this.tipoMovimientoRepository.findByNombre(nextName)
+      const existente = await this.buscarDuplicadoSemantico(nextName, id)
       if (existente && (existente as any).id_tipo_movimiento !== id) {
         throw new Error('Ya existe un tipo de movimiento con ese nombre')
       }
@@ -93,7 +96,26 @@ export class TipoMovimientoService {
   }
 
   private esTipoBase(nombre: string): boolean {
-    const normalized = (nombre || '').trim().toUpperCase()
-    return TIPOS_BASE.includes(normalized)
+    const normalized = this.normalizarNombre(nombre || '')
+    return TIPOS_BASE.some((base) => this.normalizarNombre(base) === normalized)
+  }
+
+  private normalizarNombre(nombre: string): string {
+    return nombre
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toUpperCase()
+  }
+
+  private async buscarDuplicadoSemantico(nombre: string, excludeId?: number) {
+    const tipos = await this.tipoMovimientoRepository.findAll()
+    const canonical = this.normalizarNombre(nombre)
+
+    return tipos.find((t: any) => {
+      if (excludeId && t.id_tipo_movimiento === excludeId) return false
+      return this.normalizarNombre(t.nombre_tipo) === canonical
+    })
   }
 }

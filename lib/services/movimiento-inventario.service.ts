@@ -1,6 +1,8 @@
 import { MovimientoInventarioRepository } from '../repositories/movimiento-inventario.repository'
 import { TipoMovimientoRepository } from '../repositories/tipo-movimiento.repository'
 import { CreateMovimientoInventarioDTO } from '../dto/inventario.dto' 
+import { prisma } from '../db'
+import { ensureTipoMovimientoBase } from './tipo-movimiento-base.service'
 
 export class MovimientoInventarioService {
   private movimientoRepository: MovimientoInventarioRepository
@@ -89,8 +91,8 @@ export class MovimientoInventarioService {
   }
 
   async getByTipo(nombre_tipo: string) {
-    const tipo = await this.tipoMovimientoRepository.findByNombre(nombre_tipo)
-    if (!tipo) throw new Error('Tipo de movimiento no encontrado')
+    const tipo = await ensureTipoMovimientoBase(prisma, nombre_tipo)
+    if (!tipo) return []
 
     const movimientos = await this.movimientoRepository.findByTipo(tipo.id_tipo_movimiento)
     

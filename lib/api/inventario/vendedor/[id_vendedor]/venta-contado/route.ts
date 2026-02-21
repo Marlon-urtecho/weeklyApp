@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authMiddleware } from '../../../../../middleware/auth.middleware'
 import prisma from '../../../../../db'
+import { ensureTipoMovimientoBase } from '../../../../../services/tipo-movimiento-base.service'
 
 interface Params {
   params: Promise<{ id_vendedor: string }>
@@ -44,15 +45,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       })
       if (!vendedor) throw new Error('Vendedor no encontrado')
 
-      const tipoSalida = await tx.tipo_movimiento.findFirst({
-        where: {
-          nombre_tipo: {
-            equals: 'SALIDA',
-            mode: 'insensitive'
-          }
-        }
-      })
-      if (!tipoSalida) throw new Error('Tipo de movimiento SALIDA no configurado')
+      const tipoSalida = await ensureTipoMovimientoBase(tx, 'SALIDA')
+      if (!tipoSalida) throw new Error('No se pudo garantizar tipo SALIDA')
 
       const ref = `CONTADO_${Date.now()}_${id_vendedor}`
       const movimientos: any[] = []
