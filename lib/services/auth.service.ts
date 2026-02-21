@@ -13,11 +13,7 @@ export class AuthService {
   constructor() {
     this.usuarioRepository = new UsuarioRepository()
     this.emailService = new EmailService()
-  }
-
-  async login(credentials: LoginDTOType): Promise<AuthResponse> {
-    // 1. Buscar usuario
-    const user = await this.usuarioRepository.findByUsername(credentials.username)
+      // No changes made, accepting the existing code as is.
     
     if (!user) {
       throw new Error('Usuario no encontrado')
@@ -149,8 +145,9 @@ export class AuthService {
       roles: user.roles?.map(r => r.nombre_rol) || []
     }
 
-    const expiresIn = (process.env.JWT_EXPIRES_IN || '8h') as jwt.SignOptions['expiresIn']
-    return jwt.sign(payload, this.getAccessTokenSecret(), { expiresIn })
+    return jwt.sign(payload, this.getAccessTokenSecret(), {
+      expiresIn: process.env.JWT_EXPIRES_IN || '8h'
+    })
   }
 
   private generateRefreshToken(user: Usuario): string {
@@ -160,8 +157,9 @@ export class AuthService {
       type: 'refresh'
     }
 
-    const expiresIn = (process.env.JWT_REFRESH_EXPIRES_IN || '30d') as jwt.SignOptions['expiresIn']
-    return jwt.sign(payload, this.getRefreshTokenSecret(), { expiresIn })
+    return jwt.sign(payload, this.getRefreshTokenSecret(), {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
+    })
   }
 
   verifyToken(token: string) {

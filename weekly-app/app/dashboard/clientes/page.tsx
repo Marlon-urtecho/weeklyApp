@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import LayoutContainer from '@/components/layout/LayoutContainer'
 import { Card } from '@/components/ui/Card'
@@ -84,7 +84,7 @@ interface ClienteDetalle extends ClienteRow {
   rutas?: ClienteRow['rutas']
 }
 
-export default function ClientesPage() {
+function ClientesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [clientes, setClientes] = useState<ClienteRow[]>([])
@@ -1089,5 +1089,13 @@ export default function ClientesPage() {
         </Modal>
       </div>
     </LayoutContainer>
+  )
+}
+
+export default function ClientesPage() {
+  return (
+    <Suspense fallback={null}>
+      <ClientesContent />
+    </Suspense>
   )
 }

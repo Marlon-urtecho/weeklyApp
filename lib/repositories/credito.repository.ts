@@ -1,7 +1,7 @@
 // repositories/credito.repository.ts
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { creditos as Credito } from '@prisma/client'
+import { creditos as Credito } from '../../prisma/generated/prisma/client'
 import { UpdateCreditoDTOType } from '../dto/credito.dto'
 
 export class CreditoRepository extends BaseRepository<Credito> {

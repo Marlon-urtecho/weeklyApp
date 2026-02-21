@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { BaseRepository } from './base.repository'
-import { pagos as Pago } from '@prisma/client'
+import { pagos as Pago } from '../../prisma/generated/prisma/client'
 
 export class PagoRepository extends BaseRepository<Pago> {
   constructor() {

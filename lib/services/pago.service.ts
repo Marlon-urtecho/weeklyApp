@@ -1,4 +1,5 @@
 import { PagoRepository } from '../repositories/pago.repository'
+import { pagos as Pago } from '../../prisma/generated/prisma/client'
 import { CreditoRepository } from '../repositories/credito.repository'
 import { UsuarioRepository } from '../repositories/usuario.repository'
 import { CreatePagoDTOType } from '../dto/pagos.dto'
@@ -179,7 +180,7 @@ export class PagoService {
   async getPagosPorCliente(id_cliente: number) {
     const creditos = await this.creditoRepository.findByCliente(id_cliente)
     
-    const pagos = []
+    const pagos: Pago[] = []
     for (const credito of creditos) {
       const pagosCredito = await this.pagoRepository.findByCredito(credito.id_credito)
       pagos.push(...pagosCredito)

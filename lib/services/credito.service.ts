@@ -116,20 +116,23 @@ export class CreditoService {
       })
       if (!vendedor) throw new Error('Vendedor no encontrado')
 
+      // Calcular monto total si no viene en el DTO
+      const calculatedTotal = data.monto_total ?? data.productos.reduce((acc, curr) => acc + (curr.cantidad * curr.precio_unitario), 0)
+
       // Crear crédito
       const credito = await tx.creditos.create({
         data: {
-        id_cliente: data.id_cliente,
-        id_vendedor: data.id_vendedor,
-        monto_total: montoTotal,
-        cuota: data.cuota,
-        frecuencia_pago: data.frecuencia_pago,
-        numero_cuotas: data.numero_cuotas,
-        saldo_pendiente: montoTotal,
-        estado: 'ACTIVO',
-        fecha_inicio: data.fecha_inicio,
-        fecha_vencimiento: data.fecha_vencimiento,
-        id_usuario_crea: data.id_usuario_crea
+          id_cliente: data.id_cliente,
+          id_vendedor: data.id_vendedor,
+          monto_total: calculatedTotal,
+          cuota: data.cuota,
+          frecuencia_pago: data.frecuencia_pago,
+          numero_cuotas: data.numero_cuotas,
+          saldo_pendiente: calculatedTotal,
+          estado: 'ACTIVO',
+          fecha_inicio: data.fecha_inicio,
+          fecha_vencimiento: data.fecha_vencimiento,
+          id_usuario_crea: data.id_usuario_crea
         }
       })
 
