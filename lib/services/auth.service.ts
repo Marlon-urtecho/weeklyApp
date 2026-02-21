@@ -14,33 +14,6 @@ export class AuthService {
     this.usuarioRepository = new UsuarioRepository()
     this.emailService = new EmailService()
       // No changes made, accepting the existing code as is.
-    
-    if (!user) {
-      throw new Error('Usuario no encontrado')
-    }
-
-    if (!user.activo) {
-      throw new Error('Usuario inactivo')
-    }
-
-    // 2. Verificar contraseña
-    const isValid = await this.usuarioRepository.verifyPassword(user, credentials.password)
-    if (!isValid) {
-      throw new Error('Contraseña incorrecta')
-    }
-
-    // 3. Generar token JWT
-    const token = this.generateAccessToken(user)
-    const refreshToken = this.generateRefreshToken(user)
-
-    // 4. Retornar sin password
-    const { password, ...userWithoutPassword } = user
-    
-    return {
-      user: userWithoutPassword,
-      token,
-      refresh_token: refreshToken
-    }
   }
 
   async register(data: RegisterDTOType): Promise<AuthResponse> {
